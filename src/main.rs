@@ -1,3 +1,4 @@
+use chess::Board;
 use chess::Piece;
 
 mod chess;
@@ -9,6 +10,7 @@ fn main() {
     let _pawn = Piece::Pawn { has_moved: false };
     let _king = Piece::King { has_moved: false };
     let _queen = Piece::Queen;
+    let _board = Board {};
 
     // Move all pieces
     rook.make_move();
