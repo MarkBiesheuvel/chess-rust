@@ -4,28 +4,34 @@ use chess::Piece;
 mod chess;
 
 fn main() {
-    let mut rook = Piece::new_rook();
-    let mut bishop = Piece::new_bishop();
-    let mut knight = Piece::new_knight();
-    let mut king = Piece::new_king();
-    let _pawn = Piece::new_pawn();
-    let _queen = Piece::new_queen();
     let _board = Board {};
 
-    // Move all pieces
-    rook.make_move();
-    bishop.make_move();
-    knight.make_move();
-    king.make_move();
+    let mut pieces = [
+        Piece::new_bishop(),
+        Piece::new_king(),
+        Piece::new_knight(),
+        Piece::new_pawn(),
+        Piece::new_queen(),
+        Piece::new_rook(),
+    ];
 
     // Print all pieces
-    println!("{:?}", rook);
-    println!("{:?}", bishop);
-    println!("{:?}", knight);
-    println!("{:?}", king);
+    for piece in &pieces {
+        println!("{:?}", piece);
+    }
+
+    // Move all pieces
+    for piece in &mut pieces {
+        piece.make_move();
+    }
+
+    // Print all pieces
+    for piece in &pieces {
+        println!("{:?}", piece);
+    }
 
     // Show legal moves of all pieces
-    println!("{:?}", rook.legal_moves());
-    println!("{:?}", bishop.legal_moves());
-    println!("{:?}", knight.legal_moves());
+    for piece in &pieces {
+        println!("{:?}", piece.legal_moves());
+    }
 }
