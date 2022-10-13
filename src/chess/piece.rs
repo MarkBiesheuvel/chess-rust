@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use std::fmt;
+
+#[derive(Copy, Clone)]
 pub enum PieceKind {
     Bishop,
     King,
@@ -8,16 +10,67 @@ pub enum PieceKind {
     Rook,
 }
 
-#[derive(Debug)]
-pub struct Piece {
-    kind: PieceKind,
-    has_moved: bool,
+#[derive(Copy, Clone)]
+pub enum PieceColor {
+    Black,
+    White,
 }
 
+#[derive(Copy, Clone)]
+pub struct Piece {
+    kind: PieceKind,
+    color: PieceColor,
+    has_moved: bool,
+}
+impl fmt::Display for Piece {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.color, self.kind) {
+            (PieceColor::White, PieceKind::Bishop) => {
+                write!(f, "♗")?;
+            }
+            (PieceColor::Black, PieceKind::Bishop) => {
+                write!(f, "♝")?;
+            }
+            (PieceColor::White, PieceKind::King) => {
+                write!(f, "♔")?;
+            }
+            (PieceColor::Black, PieceKind::King) => {
+                write!(f, "♚")?;
+            }
+            (PieceColor::White, PieceKind::Knight) => {
+                write!(f, "♘")?;
+            }
+            (PieceColor::Black, PieceKind::Knight) => {
+                write!(f, "♞")?;
+            }
+            (PieceColor::White, PieceKind::Pawn) => {
+                write!(f, "♙")?;
+            }
+            (PieceColor::Black, PieceKind::Pawn) => {
+                write!(f, "♟")?;
+            }
+            (PieceColor::White, PieceKind::Queen) => {
+                write!(f, "♕")?;
+            }
+            (PieceColor::Black, PieceKind::Queen) => {
+                write!(f, "♛")?;
+            }
+            (PieceColor::White, PieceKind::Rook) => {
+                write!(f, "♖")?;
+            }
+            (PieceColor::Black, PieceKind::Rook) => {
+                write!(f, "♜")?;
+            }
+        }
+
+        Ok(())
+    }
+}
 impl Piece {
-    pub fn new(kind: PieceKind) -> Self {
+    pub fn new(color: PieceColor, kind: PieceKind) -> Self {
         Piece {
             kind,
+            color,
             has_moved: false,
         }
     }
