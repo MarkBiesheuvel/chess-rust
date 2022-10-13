@@ -1,4 +1,5 @@
-use super::piece::{Piece, PieceColor, PieceKind};
+#![allow(dead_code)]
+use super::piece::{Piece, PieceColor};
 use std::fmt;
 
 #[derive(Copy, Clone)]
@@ -24,58 +25,80 @@ impl fmt::Display for Square {
 //
 pub struct Board {
     squares: [[Square; 8]; 8],
+    castling_white_king_side_is_available: bool,
+    castling_white_queen_side_is_available: bool,
+    castling_black_king_side_is_available: bool,
+    castling_black_queen_side_is_available: bool,
+    active_color: PieceColor,
 }
 impl Board {
-    pub fn new() -> Self {
-        let mut board = Board {
-            squares: [[Square::Empty; 8]; 8],
-        };
+    // Initialize a board from Forsyth–Edwards Notation
+    pub fn fen(specification: &str) -> Board {
+        // Start with empty squares
+        let mut squares = [[Square::Empty; 8]; 8];
 
-        // White pieces
-        board.add_new_piece(0, 0, PieceColor::White, PieceKind::Rook);
-        board.add_new_piece(1, 0, PieceColor::White, PieceKind::Knight);
-        board.add_new_piece(2, 0, PieceColor::White, PieceKind::Bishop);
-        board.add_new_piece(3, 0, PieceColor::White, PieceKind::Queen);
-        board.add_new_piece(4, 0, PieceColor::White, PieceKind::King);
-        board.add_new_piece(5, 0, PieceColor::White, PieceKind::Bishop);
-        board.add_new_piece(6, 0, PieceColor::White, PieceKind::Knight);
-        board.add_new_piece(7, 0, PieceColor::White, PieceKind::Rook);
+        let mut rank: usize = 7;
+        let mut file: usize = 0;
 
-        // White pawns
-        board.add_new_piece(0, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(1, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(2, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(3, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(4, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(5, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(6, 1, PieceColor::White, PieceKind::Pawn);
-        board.add_new_piece(7, 1, PieceColor::White, PieceKind::Pawn);
+        let mut characters = specification.chars();
 
-        // Black pawns
-        board.add_new_piece(0, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(1, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(2, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(3, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(4, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(5, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(6, 6, PieceColor::Black, PieceKind::Pawn);
-        board.add_new_piece(7, 6, PieceColor::Black, PieceKind::Pawn);
+        loop {
+            match characters.next() {
+                Some(character) => {
+                    match character {
+                        ' ' => {
+                            break;
+                        }
+                        '/' => {
+                            file = 0;
+                            rank -= 1;
+                        }
+                        '1'..='8' => {
+                            file += character.to_digit(10).unwrap() as usize;
+                        }
+                        _ => {
+                            squares[rank][file] = Square::Taken(Piece::fen(character));
+                            file += 1;
+                        }
+                    }
+                }
+                None => {
+                    panic!("Not enough squares");
+                }
+            }
+        }
 
-        // Black pieces
-        board.add_new_piece(0, 7, PieceColor::Black, PieceKind::Rook);
-        board.add_new_piece(1, 7, PieceColor::Black, PieceKind::Knight);
-        board.add_new_piece(2, 7, PieceColor::Black, PieceKind::Bishop);
-        board.add_new_piece(3, 7, PieceColor::Black, PieceKind::Queen);
-        board.add_new_piece(4, 7, PieceColor::Black, PieceKind::King);
-        board.add_new_piece(5, 7, PieceColor::Black, PieceKind::Bishop);
-        board.add_new_piece(6, 7, PieceColor::Black, PieceKind::Knight);
-        board.add_new_piece(7, 7, PieceColor::Black, PieceKind::Rook);
+        // TODO: write as a function
+        let active_color;
+        match characters.next() {
+            Some(character) => {
+                match character {
+                    'b' => {
+                        active_color = PieceColor::Black;
+                    }
+                    'w' => {
+                        active_color = PieceColor::White;
+                    }
+                    _ => {
+                        panic!("Invalid active color");
+                    }
+                }
+            }
+            None => {
+                panic!("Missing active color");
+            }
+        }
 
-        board
-    }
+        // TODO: get other properties from FEN notation
 
-    fn add_new_piece(&mut self, file: usize, rank: usize, color: PieceColor, kind: PieceKind) {
-        self.squares[rank][file] = Square::Taken(Piece::new(color, kind));
+        Board {
+            squares,
+            active_color,
+            castling_white_king_side_is_available: true,
+            castling_white_queen_side_is_available: true,
+            castling_black_king_side_is_available: true,
+            castling_black_queen_side_is_available: true,
+        }
     }
 }
 impl fmt::Display for Board {
