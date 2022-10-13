@@ -1,18 +1,19 @@
 use chess::Board;
 use chess::Piece;
+use chess::PieceKind::{Bishop, King, Knight, Pawn, Queen, Rook};
 
 mod chess;
 
 fn main() {
-    let _board = Board {};
+    let _board = Board::new();
 
     let mut pieces = [
-        Piece::new_bishop(),
-        Piece::new_king(),
-        Piece::new_knight(),
-        Piece::new_pawn(),
-        Piece::new_queen(),
-        Piece::new_rook(),
+        Piece::new(Bishop),
+        Piece::new(King),
+        Piece::new(Knight),
+        Piece::new(Pawn),
+        Piece::new(Queen),
+        Piece::new(Rook),
     ];
 
     // Print all pieces
@@ -22,7 +23,7 @@ fn main() {
 
     // Move all pieces
     for piece in &mut pieces {
-        piece.make_move();
+        piece.update();
     }
 
     // Print all pieces
