@@ -24,102 +24,46 @@ pub struct Piece {
 }
 impl fmt::Display for Piece {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.color, self.kind) {
-            (PieceColor::White, PieceKind::Bishop) => {
-                write!(f, "♗")?;
-            }
-            (PieceColor::Black, PieceKind::Bishop) => {
-                write!(f, "♝")?;
-            }
-            (PieceColor::White, PieceKind::King) => {
-                write!(f, "♔")?;
-            }
-            (PieceColor::Black, PieceKind::King) => {
-                write!(f, "♚")?;
-            }
-            (PieceColor::White, PieceKind::Knight) => {
-                write!(f, "♘")?;
-            }
-            (PieceColor::Black, PieceKind::Knight) => {
-                write!(f, "♞")?;
-            }
-            (PieceColor::White, PieceKind::Pawn) => {
-                write!(f, "♙")?;
-            }
-            (PieceColor::Black, PieceKind::Pawn) => {
-                write!(f, "♟")?;
-            }
-            (PieceColor::White, PieceKind::Queen) => {
-                write!(f, "♕")?;
-            }
-            (PieceColor::Black, PieceKind::Queen) => {
-                write!(f, "♛")?;
-            }
-            (PieceColor::White, PieceKind::Rook) => {
-                write!(f, "♖")?;
-            }
-            (PieceColor::Black, PieceKind::Rook) => {
-                write!(f, "♜")?;
-            }
-        }
-
-        Ok(())
+        write!(f, "{}", self.symbol())
     }
 }
 impl Piece {
-    pub fn fen(character: char) -> Piece {
+    pub fn new(color: PieceColor, kind: PieceKind) -> Piece {
+        Piece { color, kind }
+    }
+
+    fn symbol(&self) -> &str {
+        match (self.color, self.kind) {
+            (PieceColor::White, PieceKind::Bishop) => "♗",
+            (PieceColor::Black, PieceKind::Bishop) => "♝",
+            (PieceColor::White, PieceKind::King) => "♔",
+            (PieceColor::Black, PieceKind::King) => "♚",
+            (PieceColor::White, PieceKind::Knight) => "♘",
+            (PieceColor::Black, PieceKind::Knight) => "♞",
+            (PieceColor::White, PieceKind::Pawn) => "♙",
+            (PieceColor::Black, PieceKind::Pawn) => "♟",
+            (PieceColor::White, PieceKind::Queen) => "♕",
+            (PieceColor::Black, PieceKind::Queen) => "♛",
+            (PieceColor::White, PieceKind::Rook) => "♖",
+            (PieceColor::Black, PieceKind::Rook) => "♜",
+        }
+    }
+
+    pub fn fen(character: char) -> Option<Piece> {
         match character {
-            'B' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::Bishop,
-            },
-            'b' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::Bishop,
-            },
-            'K' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::King,
-            },
-            'k' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::King,
-            },
-            'N' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::Knight,
-            },
-            'n' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::Knight,
-            },
-            'P' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::Pawn,
-            },
-            'p' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::Pawn,
-            },
-            'Q' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::Queen,
-            },
-            'q' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::Queen,
-            },
-            'R' => Piece {
-                color: PieceColor::White,
-                kind: PieceKind::Rook,
-            },
-            'r' => Piece {
-                color: PieceColor::Black,
-                kind: PieceKind::Rook,
-            },
-            _ => {
-                panic!("Invalid piece");
-            }
+            'B' => Some(Piece::new(PieceColor::White, PieceKind::Bishop)),
+            'b' => Some(Piece::new(PieceColor::Black, PieceKind::Bishop)),
+            'K' => Some(Piece::new(PieceColor::White, PieceKind::King)),
+            'k' => Some(Piece::new(PieceColor::Black, PieceKind::King)),
+            'N' => Some(Piece::new(PieceColor::White, PieceKind::Knight)),
+            'n' => Some(Piece::new(PieceColor::Black, PieceKind::Knight)),
+            'P' => Some(Piece::new(PieceColor::White, PieceKind::Pawn)),
+            'p' => Some(Piece::new(PieceColor::Black, PieceKind::Pawn)),
+            'Q' => Some(Piece::new(PieceColor::White, PieceKind::Queen)),
+            'q' => Some(Piece::new(PieceColor::Black, PieceKind::Queen)),
+            'R' => Some(Piece::new(PieceColor::White, PieceKind::Rook)),
+            'r' => Some(Piece::new(PieceColor::Black, PieceKind::Rook)),
+            _ => None,
         }
     }
 

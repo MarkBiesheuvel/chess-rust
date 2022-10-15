@@ -2,7 +2,19 @@
 use super::piece::{Piece, PieceColor};
 use std::fmt;
 
+// Standard starting position for a game of chess
+// Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+#[derive(Debug)]
+pub enum FenParserError {
+    InvalidCastling(char),
+    InvalidColor(char),
+    InvalidFile(char),
+    InvalidPiece(char),
+    InvalidRank(char),
+    UnexpectedEnd,
+}
 
 #[derive(Clone, Copy, Debug)]
 enum Square {
@@ -37,11 +49,11 @@ pub struct Board {
 impl Board {
     // Initialize a board with the starting position
     pub fn starting_position() -> Board {
-        Board::fen(STARTING_POSITION)
+        Board::fen(STARTING_POSITION).expect("Hardcoded FEN should not give parser error")
     }
 
     // Initialize a board from Forsyth–Edwards Notation
-    pub fn fen(specification: &str) -> Board {
+    pub fn fen(specification: &str) -> Result<Board, FenParserError> {
         // Start with empty squares
         let mut squares = [[Square::Empty; 8]; 8];
 
@@ -70,40 +82,32 @@ impl Board {
                         file += character.to_digit(10).unwrap() as usize;
                     }
                     // Any character implies a piece on the current square, so create a new piece and increase file
-                    _ => {
-                        squares[rank][file] = Square::Taken(Piece::fen(character));
-                        file += 1;
-                    }
+                    _ => match Piece::fen(character) {
+                        Some(piece) => {
+                            squares[rank][file] = Square::Taken(piece);
+                            file += 1;
+                        }
+                        None => Err(FenParserError::InvalidPiece(character))?,
+                    },
                 },
                 // End of specification reached too early
-                None => {
-                    panic!("Specification is too short");
-                }
+                None => Err(FenParserError::UnexpectedEnd)?,
             }
         }
 
         // Detect whether it is the turn of black or white
-        let active_color;
-        match characters.next() {
+        let active_color = match characters.next() {
             Some(character) => match character {
                 // Blacks turn to move
-                'b' => {
-                    active_color = PieceColor::Black;
-                }
+                'b' => PieceColor::Black,
                 // Whites turn to move
-                'w' => {
-                    active_color = PieceColor::White;
-                }
+                'w' => PieceColor::White,
                 // Invalid character
-                _ => {
-                    panic!("Invalid active color");
-                }
+                _ => Err(FenParserError::InvalidColor(character))?,
             },
             // End of specification reached too early
-            None => {
-                panic!("Specification is too short");
-            }
-        }
+            None => Err(FenParserError::UnexpectedEnd)?,
+        };
 
         // This character should just be a space
         characters.next();
@@ -143,14 +147,10 @@ impl Board {
                         castling_black_queenside_is_available = true;
                     }
                     // Invalid character
-                    _ => {
-                        panic!("Invalid castling availability: {}", character);
-                    }
+                    _ => Err(FenParserError::InvalidCastling(character))?,
                 },
                 // End of specification reached too early
-                None => {
-                    panic!("Specification is too short");
-                }
+                None => Err(FenParserError::UnexpectedEnd)?,
             }
         }
 
@@ -165,36 +165,28 @@ impl Board {
                             // TODO: store this location
                             println!("{}{}", first_character, second_character);
                         }
-                        _ => {
-                            panic!("Invalid rank for en passant");
-                        }
+                        _ => Err(FenParserError::InvalidRank(second_character))?,
                     },
                     // End of specification reached too early
-                    None => {
-                        panic!("Specification is too short");
-                    }
+                    None => Err(FenParserError::UnexpectedEnd)?,
                 },
                 '-' => {
                     // No en passant target square, no problem
                 }
-                _ => {
-                    panic!("Invalid file for en passant");
-                }
+                _ => Err(FenParserError::InvalidFile(first_character))?,
             },
             // End of specification reached too early
-            None => {
-                panic!("Specification is too short");
-            }
+            None => Err(FenParserError::UnexpectedEnd)?,
         }
 
-        Board {
+        Ok(Board {
             squares,
             active_color,
             castling_white_kingside_is_available,
             castling_white_queenside_is_available,
             castling_black_kingside_is_available,
             castling_black_queenside_is_available,
-        }
+        })
     }
 }
 impl fmt::Display for Board {
