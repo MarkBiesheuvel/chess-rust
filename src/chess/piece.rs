@@ -49,37 +49,10 @@ impl Piece {
         }
     }
 
-    pub fn fen(character: char) -> Option<Piece> {
-        match character {
-            'B' => Some(Piece::new(PieceColor::White, PieceKind::Bishop)),
-            'b' => Some(Piece::new(PieceColor::Black, PieceKind::Bishop)),
-            'K' => Some(Piece::new(PieceColor::White, PieceKind::King)),
-            'k' => Some(Piece::new(PieceColor::Black, PieceKind::King)),
-            'N' => Some(Piece::new(PieceColor::White, PieceKind::Knight)),
-            'n' => Some(Piece::new(PieceColor::Black, PieceKind::Knight)),
-            'P' => Some(Piece::new(PieceColor::White, PieceKind::Pawn)),
-            'p' => Some(Piece::new(PieceColor::Black, PieceKind::Pawn)),
-            'Q' => Some(Piece::new(PieceColor::White, PieceKind::Queen)),
-            'q' => Some(Piece::new(PieceColor::Black, PieceKind::Queen)),
-            'R' => Some(Piece::new(PieceColor::White, PieceKind::Rook)),
-            'r' => Some(Piece::new(PieceColor::Black, PieceKind::Rook)),
-            _ => None,
-        }
-    }
-
     pub fn legal_moves(&self) -> Vec<(i8, i8)> {
         match self.kind {
             PieceKind::Knight => {
-                vec![
-                    (2, 1),
-                    (2, -1),
-                    (-2, 1),
-                    (-2, -1),
-                    (1, 2),
-                    (1, -2),
-                    (-1, 2),
-                    (-1, 2),
-                ]
+                vec![(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, 2)]
             }
             _ => {
                 // TODO: implement for other pieces
