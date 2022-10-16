@@ -15,8 +15,8 @@ pub enum FenParserError {
 struct FieldIterator<'a> {
     iter: SplitWhitespace<'a>,
 }
-impl<'a> FieldIterator<'a> {
-    fn new(specification: &'a str) -> FieldIterator<'a> {
+impl FieldIterator<'_> {
+    fn new(specification: &str) -> FieldIterator {
         FieldIterator {
             iter: specification.split_whitespace(),
         }
