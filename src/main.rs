@@ -1,7 +1,5 @@
 use chess::Board;
 
-mod chess;
-
 fn main() {
     // Create a standard chess board
     let starting_position = Board::starting_position();
