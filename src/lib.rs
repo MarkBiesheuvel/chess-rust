@@ -1,5 +1,3 @@
-pub use board::Board;
-
-mod board;
-mod parser;
-mod piece;
+pub mod board;
+pub mod parser;
+pub mod piece;

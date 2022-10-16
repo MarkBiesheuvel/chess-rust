@@ -2,7 +2,7 @@ use super::board::{Board, CastlingAvailability, Square, Squares};
 use super::piece::{Piece, PieceColor, PieceKind};
 use std::str::SplitWhitespace;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum FenParserError {
     InvalidCastling(char),
     InvalidColor(char),

@@ -1,4 +1,4 @@
-use chess::Board;
+use chess::board::Board;
 
 fn main() {
     // Create a standard chess board

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::fmt;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PieceKind {
     Bishop,
     King,
@@ -11,13 +11,13 @@ pub enum PieceKind {
     Rook,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PieceColor {
     Black,
     White,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Piece {
     color: PieceColor,
     kind: PieceKind,

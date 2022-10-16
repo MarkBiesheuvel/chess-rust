@@ -8,7 +8,7 @@ use std::fmt;
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Type for squares of the chess board
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Square {
     Taken(Piece),
     Empty,
@@ -32,7 +32,7 @@ impl fmt::Display for Square {
 pub type Squares = [[Square; 8]; 8];
 
 // Type to indicate whether castling is available for the either player on either king- or queenside
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CastlingAvailability {
     white_kingside: bool,
     white_queenside: bool,
@@ -56,7 +56,7 @@ impl CastlingAvailability {
 }
 
 // Chess board consisting of 64 squares and indicators for various special moves
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Board {
     squares: Squares,
     active_color: PieceColor,
