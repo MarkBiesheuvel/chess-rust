@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use super::parser::{parse_forsyth_edwards_notation, FenParserError};
 use super::piece::{Piece, PieceColor};
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 // Standard starting position for a game of chess
 // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
@@ -13,8 +13,8 @@ pub enum Square {
     Taken(Piece),
     Empty,
 }
-impl fmt::Display for Square {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Square {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Square::Taken(piece) => {
                 write!(f, "{}", piece)?;
@@ -82,8 +82,8 @@ impl Board {
         parse_forsyth_edwards_notation(record)
     }
 }
-impl fmt::Display for Board {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Board {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "┏━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┓\n")?;
 
         for rank in (0..8).rev() {

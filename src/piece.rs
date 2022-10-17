@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PieceKind {
@@ -22,8 +22,8 @@ pub struct Piece {
     color: PieceColor,
     kind: PieceKind,
 }
-impl fmt::Display for Piece {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Piece {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.symbol())
     }
 }

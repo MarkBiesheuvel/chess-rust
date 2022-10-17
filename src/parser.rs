@@ -1,7 +1,10 @@
 use super::board::{Board, CastlingAvailability, Square, Squares};
 use super::piece::{Piece, PieceColor, PieceKind};
+use std::error::Error;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::SplitWhitespace;
 
+// Enum to represent the different error types
 #[derive(Debug, PartialEq)]
 pub enum FenParserError {
     InvalidCastling(char),
@@ -11,7 +14,35 @@ pub enum FenParserError {
     UnexpectedEnd,
     IncompletePiecePlacement,
 }
+impl Display for FenParserError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            FenParserError::InvalidCastling(character) => {
+                write!(f, "invalid castling availability provided: {:?}", character)?;
+            }
+            FenParserError::InvalidColor(character) => {
+                write!(f, "invalid active color provided: {:?}", character)?;
+            }
+            FenParserError::InvalidFile(character) => {
+                write!(f, "invalid file for en passant target square provided: {:?}", character)?;
+            }
+            FenParserError::InvalidPiece(character) => {
+                write!(f, "invalid piece provided: {:?}", character)?;
+            }
+            FenParserError::UnexpectedEnd => {
+                write!(f, "fen record was too short")?;
+            }
+            FenParserError::IncompletePiecePlacement => {
+                write!(f, "not all squares were provided in piece placement field")?;
+            }
+        };
 
+        Ok(())
+    }
+}
+impl Error for FenParserError {}
+
+// Wrapper for whitespace iterator that returns Results instead of Options
 struct FieldIterator<'a> {
     iter: SplitWhitespace<'a>,
 }
@@ -49,6 +80,9 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, FenParserEr
     // Detect en passant target square
     let field = field_iterator.next()?;
     let _en_passant_target_square = parse_en_passant_target_square(field)?;
+
+    // TODO: create struct for target square
+    // TODO: implement parse function for halfmove clock and fullmove number
 
     Ok(Board::new(squares, active_color, castling_availability))
 }
