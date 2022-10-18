@@ -1,5 +1,5 @@
 // Type to indicate whether castling is available for the either player on either king- or queenside
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct CastlingAvailability {
     white_kingside: bool,
     white_queenside: bool,

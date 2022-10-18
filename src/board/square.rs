@@ -1,26 +1,19 @@
 // External imports
-use std::fmt;
+use std::collections;
 // Absolute imports within crate
 use crate::piece;
 
 // Type for squares of the chess board
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Square {
-    Taken(piece::Piece),
-    Empty,
+#[derive(Debug, Eq, Hash, PartialEq)]
+pub struct Square {
+    file: usize,
+    rank: usize,
 }
-impl fmt::Display for Square {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Square::Taken(piece) => {
-                write!(f, "{}", piece)
-            }
-            Square::Empty => {
-                write!(f, " ")
-            }
-        }
+impl Square {
+    pub fn new(file: usize, rank: usize) -> Square {
+        Square { file, rank }
     }
 }
 
 // Custom type alias for 8×8 board of squares
-pub type Squares = [[Square; 8]; 8];
+pub type Squares = collections::HashMap<Square, piece::Piece>;

@@ -7,7 +7,7 @@ pub use kind::Kind;
 mod color;
 mod kind;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Piece {
     color: Color,
     kind: Kind,
@@ -23,7 +23,7 @@ impl Piece {
     }
 
     fn symbol(&self) -> &str {
-        match (self.color, self.kind) {
+        match (&self.color, &self.kind) {
             (Color::White, Kind::Bishop) => "♗",
             (Color::Black, Kind::Bishop) => "♝",
             (Color::White, Kind::King) => "♔",
@@ -39,12 +39,12 @@ impl Piece {
         }
     }
 
-    pub fn color(&self) -> Color {
-        self.color
+    pub fn color(&self) -> &Color {
+        &self.color
     }
 
-    pub fn kind(&self) -> Kind {
-        self.kind
+    pub fn kind(&self) -> &Kind {
+        &self.kind
     }
 
     pub fn legal_moves(&self) -> Vec<(i8, i8)> {

@@ -34,11 +34,8 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<board::Board, Pars
 }
 
 fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, ParseError> {
-    // Pull Square into scope for this function only
-    use board::Square;
-
     // Start with empty squares
-    let mut squares = [[Square::Empty; 8]; 8];
+    let mut squares = board::Squares::new();
 
     // Go from highest rank to lowest, and from lowest file to highest
     let mut rank: usize = 7;
@@ -69,10 +66,11 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
             }
             // Any character implies a piece on the current square, so  and increase file
             _ => {
-                // Create a new piece
+                // Create a new square and piece
+                let square = board::Square::new(file, rank);
                 let piece = parse_piece(character)?;
-                // Store piece on a square, which is therefore now taken
-                squares[rank][file] = Square::Taken(piece);
+                // Place piece on a square
+                squares.insert(square, piece);
                 // Increase file count
                 file += 1;
             }
