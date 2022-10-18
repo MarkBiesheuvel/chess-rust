@@ -1,67 +1,13 @@
-use super::board::{Board, CastlingAvailability, Square, Squares};
-use super::piece::{Piece, PieceColor, PieceKind};
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::str::SplitWhitespace;
+// Absolute imports within crate
+use crate::board;
+use crate::piece;
+// Relative imports of sub modules
+use field_iterator::FieldIterator;
+pub use parse_error::ParseError;
+mod field_iterator;
+mod parse_error;
 
-// Enum to represent the different error types
-#[derive(Debug, PartialEq)]
-pub enum FenParserError {
-    InvalidCastling(char),
-    InvalidColor(char),
-    InvalidFile(char),
-    InvalidPiece(char),
-    UnexpectedEnd,
-    IncompletePiecePlacement,
-}
-impl Display for FenParserError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            FenParserError::InvalidCastling(character) => {
-                write!(f, "invalid castling availability provided: {:?}", character)?;
-            }
-            FenParserError::InvalidColor(character) => {
-                write!(f, "invalid active color provided: {:?}", character)?;
-            }
-            FenParserError::InvalidFile(character) => {
-                write!(f, "invalid file for en passant target square provided: {:?}", character)?;
-            }
-            FenParserError::InvalidPiece(character) => {
-                write!(f, "invalid piece provided: {:?}", character)?;
-            }
-            FenParserError::UnexpectedEnd => {
-                write!(f, "fen record was too short")?;
-            }
-            FenParserError::IncompletePiecePlacement => {
-                write!(f, "not all squares were provided in piece placement field")?;
-            }
-        };
-
-        Ok(())
-    }
-}
-impl Error for FenParserError {}
-
-// Wrapper for whitespace iterator that returns Results instead of Options
-struct FieldIterator<'a> {
-    iter: SplitWhitespace<'a>,
-}
-impl FieldIterator<'_> {
-    fn new(specification: &str) -> FieldIterator {
-        FieldIterator {
-            iter: specification.split_whitespace(),
-        }
-    }
-
-    fn next(&mut self) -> Result<&str, FenParserError> {
-        match self.iter.next() {
-            Some(field) => Ok(field),
-            None => Err(FenParserError::UnexpectedEnd),
-        }
-    }
-}
-
-pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, FenParserError> {
+pub fn parse_forsyth_edwards_notation(record: &str) -> Result<board::Board, ParseError> {
     // Deconstruct specification into the different fields
     let mut field_iterator = FieldIterator::new(record);
 
@@ -84,10 +30,13 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, FenParserEr
     // TODO: create struct for target square
     // TODO: implement parse function for halfmove clock and fullmove number
 
-    Ok(Board::new(squares, active_color, castling_availability))
+    Ok(board::Board::new(squares, active_color, castling_availability))
 }
 
-fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, FenParserError> {
+fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, ParseError> {
+    // Pull Square into scope for this function only
+    use board::Square;
+
     // Start with empty squares
     let mut squares = [[Square::Empty; 8]; 8];
 
@@ -102,7 +51,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, FenPars
             '/' => {
                 // Verify whether we didn't miss any file
                 if file != 8 {
-                    return Err(FenParserError::IncompletePiecePlacement);
+                    return Err(ParseError::IncompletePiecePlacement);
                 }
                 // Go down one rank and reset file
                 file = 0;
@@ -134,45 +83,49 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, FenPars
     if rank == 0 && file == 8 {
         Ok(squares)
     } else {
-        Err(FenParserError::IncompletePiecePlacement)
+        Err(ParseError::IncompletePiecePlacement)
     }
 }
 
-fn parse_piece(character: char) -> Result<Piece, FenParserError> {
+fn parse_piece(character: char) -> Result<piece::Piece, ParseError> {
+    // Pull Piece, Color, and Kind into scope for this function only
+    use piece::{Color, Kind, Piece};
+
+    // Return new piece
     match character {
-        'B' => Ok(Piece::new(PieceColor::White, PieceKind::Bishop)),
-        'b' => Ok(Piece::new(PieceColor::Black, PieceKind::Bishop)),
-        'K' => Ok(Piece::new(PieceColor::White, PieceKind::King)),
-        'k' => Ok(Piece::new(PieceColor::Black, PieceKind::King)),
-        'N' => Ok(Piece::new(PieceColor::White, PieceKind::Knight)),
-        'n' => Ok(Piece::new(PieceColor::Black, PieceKind::Knight)),
-        'P' => Ok(Piece::new(PieceColor::White, PieceKind::Pawn)),
-        'p' => Ok(Piece::new(PieceColor::Black, PieceKind::Pawn)),
-        'Q' => Ok(Piece::new(PieceColor::White, PieceKind::Queen)),
-        'q' => Ok(Piece::new(PieceColor::Black, PieceKind::Queen)),
-        'R' => Ok(Piece::new(PieceColor::White, PieceKind::Rook)),
-        'r' => Ok(Piece::new(PieceColor::Black, PieceKind::Rook)),
-        _ => Err(FenParserError::InvalidPiece(character)),
+        'B' => Ok(Piece::new(Color::White, Kind::Bishop)),
+        'b' => Ok(Piece::new(Color::Black, Kind::Bishop)),
+        'K' => Ok(Piece::new(Color::White, Kind::King)),
+        'k' => Ok(Piece::new(Color::Black, Kind::King)),
+        'N' => Ok(Piece::new(Color::White, Kind::Knight)),
+        'n' => Ok(Piece::new(Color::Black, Kind::Knight)),
+        'P' => Ok(Piece::new(Color::White, Kind::Pawn)),
+        'p' => Ok(Piece::new(Color::Black, Kind::Pawn)),
+        'Q' => Ok(Piece::new(Color::White, Kind::Queen)),
+        'q' => Ok(Piece::new(Color::Black, Kind::Queen)),
+        'R' => Ok(Piece::new(Color::White, Kind::Rook)),
+        'r' => Ok(Piece::new(Color::Black, Kind::Rook)),
+        _ => Err(ParseError::InvalidPiece(character)),
     }
 }
 
-fn parse_active_color(active_color_field: &str) -> Result<PieceColor, FenParserError> {
+fn parse_active_color(active_color_field: &str) -> Result<piece::Color, ParseError> {
     // Detect whether it is the turn of black or white
     match active_color_field.chars().nth(0) {
         Some(character) => match character {
             // Blacks turn to move
-            'b' => Ok(PieceColor::Black),
+            'b' => Ok(piece::Color::Black),
             // Whites turn to move
-            'w' => Ok(PieceColor::White),
+            'w' => Ok(piece::Color::White),
             // Invalid character
-            _ => Err(FenParserError::InvalidColor(character)),
+            _ => Err(ParseError::InvalidColor(character)),
         },
         // End of specification reached too early
-        None => Err(FenParserError::UnexpectedEnd),
+        None => Err(ParseError::UnexpectedEnd),
     }
 }
 
-fn parse_castling_availability(castling_availability_field: &str) -> Result<CastlingAvailability, FenParserError> {
+fn parse_castling_availability(castling_availability_field: &str) -> Result<board::CastlingAvailability, ParseError> {
     // By default, no castling is allowed
     let mut white_kingside = false;
     let mut white_queenside = false;
@@ -203,12 +156,12 @@ fn parse_castling_availability(castling_availability_field: &str) -> Result<Cast
             }
             // Invalid character
             _ => {
-                return Err(FenParserError::InvalidCastling(character));
+                return Err(ParseError::InvalidCastling(character));
             }
         }
     }
 
-    Ok(CastlingAvailability::new(
+    Ok(board::CastlingAvailability::new(
         white_kingside,
         white_queenside,
         black_kingside,
@@ -216,7 +169,7 @@ fn parse_castling_availability(castling_availability_field: &str) -> Result<Cast
     ))
 }
 
-fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Result<Option<&str>, FenParserError> {
+fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Result<Option<&str>, ParseError> {
     // Detect whether it is the turn of black or white
     match en_passant_target_square_field.chars().nth(0) {
         Some(character) => match character {
@@ -226,9 +179,9 @@ fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Resul
             // No en passant target square, so Ok (instead of Err) and None (instead of Some)
             '-' => Ok(None),
             // Any other character is error
-            _ => Err(FenParserError::InvalidFile(character)),
+            _ => Err(ParseError::InvalidFile(character)),
         },
         // End of specification reached too early
-        None => Err(FenParserError::UnexpectedEnd),
+        None => Err(ParseError::UnexpectedEnd),
     }
 }

@@ -1,5 +1,5 @@
 use chess::board::Board;
-use chess::parser::FenParserError;
+use chess::parser::ParseError;
 
 #[test]
 fn invalid_piece_error() {
@@ -7,7 +7,7 @@ fn invalid_piece_error() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBXKBNR w KQkq - 0 1");
 
     // The record contains an X in the piece placement field, which is invalid
-    assert_eq!(result, Err(FenParserError::InvalidPiece('X')));
+    assert_eq!(result, Err(ParseError::InvalidPiece('X')));
 }
 
 #[test]
@@ -16,7 +16,7 @@ fn missing_white_pawn() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     // The record contains is missing a white pawn
-    assert_eq!(result, Err(FenParserError::IncompletePiecePlacement));
+    assert_eq!(result, Err(ParseError::IncompletePiecePlacement));
 }
 
 #[test]
@@ -25,7 +25,7 @@ fn missing_empty_square() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/7/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     // The record contains is missing an empty square
-    assert_eq!(result, Err(FenParserError::IncompletePiecePlacement));
+    assert_eq!(result, Err(ParseError::IncompletePiecePlacement));
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn missing_rank() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     // The record contains is missing an entire rank
-    assert_eq!(result, Err(FenParserError::IncompletePiecePlacement));
+    assert_eq!(result, Err(ParseError::IncompletePiecePlacement));
 }
 
 #[test]
@@ -43,7 +43,7 @@ fn missing_white_knight() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RBQKBNR w KQkq - 0 1");
 
     // The record contains is missing a white knight
-    assert_eq!(result, Err(FenParserError::IncompletePiecePlacement));
+    assert_eq!(result, Err(ParseError::IncompletePiecePlacement));
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn invalid_active_color() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR x KQkq - 0 1");
 
     // The record contains an x in the active color field, which is invalid
-    assert_eq!(result, Err(FenParserError::InvalidColor('x')));
+    assert_eq!(result, Err(ParseError::InvalidColor('x')));
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn invalid_castling_availability() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkx - 0 1");
 
     // The record contains an x in the castling availability field, which is invalid
-    assert_eq!(result, Err(FenParserError::InvalidCastling('x')));
+    assert_eq!(result, Err(ParseError::InvalidCastling('x')));
 }
 
 #[test]
@@ -70,7 +70,7 @@ fn unexpected_end() {
     let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
 
     // The record is missing the last fields
-    assert_eq!(result, Err(FenParserError::UnexpectedEnd));
+    assert_eq!(result, Err(ParseError::UnexpectedEnd));
 }
 
 #[test]
