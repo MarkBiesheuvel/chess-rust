@@ -38,8 +38,8 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
     let mut squares = board::Squares::new();
 
     // Go from highest rank to lowest, and from lowest file to highest
-    let mut rank: usize = 7;
-    let mut file: usize = 0;
+    let mut rank: usize = 8;
+    let mut file: usize = 1;
 
     // Loop over characters until a space is found
     for character in piece_placement_field.chars() {
@@ -47,11 +47,11 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
             // Slash indicates end of current rank,
             '/' => {
                 // Verify whether we didn't miss any file
-                if file != 8 {
+                if file != 9 {
                     return Err(ParseError::IncompletePiecePlacement);
                 }
                 // Go down one rank and reset file
-                file = 0;
+                file = 1;
                 rank -= 1;
             }
             // A number indicates the amount of empty squares, increase file by that number
@@ -78,7 +78,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
     }
 
     // Verify whether we have gone through all the squares
-    if rank == 0 && file == 8 {
+    if rank == 1 && file == 9 {
         Ok(squares)
     } else {
         Err(ParseError::IncompletePiecePlacement)

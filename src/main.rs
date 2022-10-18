@@ -1,5 +1,4 @@
 use chess::board::Board;
-use chess::piece::Piece;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -11,12 +10,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("{}", board);
 
     // Try out the new Board::white_pieces function
-    let white_pieces: Vec<&Piece> = Vec::from_iter(board.white_pieces());
-    dbg!(white_pieces);
-
-    // Try out the new Board::black_pieces function
-    let black_pieces: Vec<&Piece> = Vec::from_iter(board.black_pieces());
-    dbg!(black_pieces);
+    for legal_move in board.legal_moves() {
+        println!("{}", legal_move);
+    }
 
     Ok(())
 }
