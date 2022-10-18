@@ -1,6 +1,4 @@
 #![allow(dead_code)]
-// External imports
-use std::fmt;
 // Relative imports of sub modules
 pub use color::Color;
 pub use kind::Kind;
@@ -12,17 +10,12 @@ pub struct Piece {
     color: Color,
     kind: Kind,
 }
-impl fmt::Display for Piece {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.symbol())
-    }
-}
 impl Piece {
     pub fn new(color: Color, kind: Kind) -> Piece {
         Piece { color, kind }
     }
 
-    fn symbol(&self) -> &str {
+    pub fn symbol(&self) -> &str {
         match (&self.color, &self.kind) {
             (Color::White, Kind::Bishop) => "♗",
             (Color::Black, Kind::Bishop) => "♝",
