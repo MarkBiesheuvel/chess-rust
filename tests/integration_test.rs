@@ -76,8 +76,21 @@ fn unexpected_end() {
 #[test]
 fn valid_record() {
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-    let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let result = Board::forsyth_edwards_notation("rnbqkb1r/ppp1pppp/8/3pP3/6n1/8/PPPPKPPP/RNBQ1BNR w kq d6 0 4");
 
     // This is a valid record so should return an Ok Result
     assert!(matches!(result, Ok(_)));
+}
+
+#[test]
+fn starting_position() {
+    // Starting position returns a Board without it being wrapped in a Result
+    let board = Board::starting_position();
+
+    // Should start with 32 pieces on the board
+    assert_eq!(board.pieces().count(), 32);
+    // Should start with 16 white pieces
+    assert_eq!(board.white_pieces().count(), 16);
+    // Should start with 16 black pieces
+    assert_eq!(board.black_pieces().count(), 16);
 }

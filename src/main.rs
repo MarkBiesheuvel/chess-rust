@@ -1,19 +1,22 @@
 use chess::board::Board;
+use chess::piece::Piece;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Create a standard chess board
-    let starting_position = Board::starting_position();
-    dbg!(&starting_position);
-    println!("{}", &starting_position);
-
     // Create a board with an ongoing game
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-    let record = "rnbqkb1r/ppp1pppp/8/3pP3/6n1/8/PPPPKPPP/RNBQ1BNR w kq d6 0 4";
-    let ongoing_game = Board::forsyth_edwards_notation(record)?;
+    let record = "3r4/1p3pk1/p4b2/P3p2p/1PP1P1b1/4K1p1/1R6/2r5 b - - 0 37";
+    let board = Board::forsyth_edwards_notation(record)?;
 
-    dbg!(&ongoing_game);
-    println!("{}", &ongoing_game);
+    println!("{}", board);
+
+    // Try out the new Board::white_pieces function
+    let white_pieces: Vec<&Piece> = Vec::from_iter(board.white_pieces());
+    dbg!(white_pieces);
+
+    // Try out the new Board::black_pieces function
+    let black_pieces: Vec<&Piece> = Vec::from_iter(board.black_pieces());
+    dbg!(black_pieces);
 
     Ok(())
 }

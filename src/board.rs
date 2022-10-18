@@ -40,6 +40,27 @@ impl Board {
     pub fn forsyth_edwards_notation(record: &str) -> Result<Board, parser::ParseError> {
         parser::parse_forsyth_edwards_notation(record)
     }
+
+    // Returns all pieces as an Iterator
+    pub fn pieces(&self) -> impl Iterator<Item = &piece::Piece> {
+        self.squares
+            .iter()
+            .flat_map(|row| row.iter())
+            .filter_map(|square| match square {
+                Square::Taken(piece) => Some(piece),
+                Square::Empty => None,
+            })
+    }
+
+    // Returns all white pieces as an Iterator
+    pub fn white_pieces(&self) -> impl Iterator<Item = &piece::Piece> {
+        self.pieces().filter(|piece| piece.color() == piece::Color::White)
+    }
+
+    // Returns all white pieces as an Iterator
+    pub fn black_pieces(&self) -> impl Iterator<Item = &piece::Piece> {
+        self.pieces().filter(|piece| piece.color() == piece::Color::Black)
+    }
 }
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

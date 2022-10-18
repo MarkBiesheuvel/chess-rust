@@ -39,6 +39,14 @@ impl Piece {
         }
     }
 
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
+    pub fn kind(&self) -> Kind {
+        self.kind
+    }
+
     pub fn legal_moves(&self) -> Vec<(i8, i8)> {
         match self.kind {
             Kind::Knight => {
