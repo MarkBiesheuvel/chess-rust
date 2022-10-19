@@ -15,9 +15,6 @@ mod square;
 // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-// All permutations of 1,-1 and 2,-2 (in other words L shapes, in other words knight moves)
-const L_SHAPES: [(i8, i8); 8] = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)];
-
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
 pub enum OccupiedBy {
     None,
@@ -83,34 +80,20 @@ impl Board {
     pub fn legal_moves(&self) -> Moves {
         use piece::Kind;
 
-        // Start out with 0 moves
-        let mut legal_moves = Moves::new();
+        // TODO: remove any moves that leave the king in check
 
-        // Collect squares with pieces of the active color
-        let squares_with_active_pieces = self
-            .squares
+        self.squares
             .iter()
-            .filter(|(_, piece)| piece.color() == &self.active_color);
-
-        // Iterate over active pieces to collect legal moves
-        for (square, piece) in squares_with_active_pieces {
-            // Get moves based on piece kind
-            let mut moves = match piece.kind() {
+            .filter(|(_, piece)| piece.color() == &self.active_color)
+            .flat_map(|(square, piece)| match piece.kind() {
                 Kind::Bishop => self.legal_bishop_moves(square, piece),
                 Kind::Knight => self.legal_knight_moves(square, piece),
                 Kind::King => self.legal_king_moves(square, piece),
                 Kind::Pawn => self.legal_pawn_moves(square, piece),
                 Kind::Queen => self.legal_queen_moves(square, piece),
                 Kind::Rook => self.legal_rook_moves(square, piece),
-            };
-
-            // Add moves to list
-            legal_moves.append(&mut moves);
-        }
-
-        // TODO: remove any moves that leave the king in check
-
-        legal_moves
+            })
+            .collect()
     }
 
     fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
@@ -159,27 +142,22 @@ impl Board {
     fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
         let mut knight_moves = Moves::new();
 
-        for (file_offset, rank_offset) in L_SHAPES {
-            // Verify that the knight is not jumping of the board
-            if origin_square.is_valid_offset(file_offset, rank_offset) {
-                // Calculate the destination square
-                let destination_square = origin_square.copy_with_offset(file_offset, rank_offset);
-                match self.is_occupied_by(&destination_square) {
-                    OccupiedBy::SameColor => {
-                        // Cannot take piece
-                    }
-                    OccupiedBy::OppositeColor => {
-                        // Can capture opposite color
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        knight_moves.push(chess_move);
-                    }
-                    OccupiedBy::None => {
-                        // Can move to empty square
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        knight_moves.push(chess_move);
-                    }
-                };
-            }
+        for destination_square in origin_square.knight_moves() {
+            match self.is_occupied_by(&destination_square) {
+                OccupiedBy::SameColor => {
+                    // Cannot take piece
+                }
+                OccupiedBy::OppositeColor => {
+                    // Can capture opposite color
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                    knight_moves.push(chess_move);
+                }
+                OccupiedBy::None => {
+                    // Can move to empty square
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                    knight_moves.push(chess_move);
+                }
+            };
         }
 
         knight_moves

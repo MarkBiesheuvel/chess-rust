@@ -6,6 +6,9 @@ use crate::piece;
 
 // TODO: create offset class
 
+// All permutations of 1,-1 and 2,-2 (in other words L shapes, in other words knight moves)
+const KNIGHT_MOVE_OFFSETS: [(i8, i8); 8] = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)];
+
 // Type for squares of the chess board
 #[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Square {
@@ -101,6 +104,14 @@ impl Square {
         (1..)
             .take_while(|offset| self.is_valid_offset(-offset, -offset))
             .map(|offset| self.copy_with_offset(-offset, -offset))
+            .collect()
+    }
+
+    pub fn knight_moves(&self) -> Vec<Square> {
+        KNIGHT_MOVE_OFFSETS
+            .iter()
+            .filter(|(file_offset, rank_offset)| self.is_valid_offset(*file_offset, *rank_offset))
+            .map(|(file_offset, rank_offset)| self.copy_with_offset(*file_offset, *rank_offset))
             .collect()
     }
 }
