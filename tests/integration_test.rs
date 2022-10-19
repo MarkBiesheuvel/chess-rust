@@ -146,4 +146,7 @@ fn starting_position() {
     assert_eq!(board.white_pieces().count(), 16);
     // Should start with 16 black pieces
     assert_eq!(board.black_pieces().count(), 16);
+
+    // (8 pawns × 2 moves) + (2 knights × 2 moves) = 20 moves
+    assert_eq!(board.legal_moves().len(), 20);
 }

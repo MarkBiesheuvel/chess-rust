@@ -38,8 +38,8 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
     let mut squares = board::Squares::new();
 
     // Go from highest rank to lowest, and from lowest file to highest
-    let mut rank: usize = 8;
-    let mut file: usize = 1;
+    let mut rank: i8 = 8;
+    let mut file: i8 = 1;
 
     // Loop over characters until a space is found
     for character in piece_placement_field.chars() {
@@ -59,8 +59,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
                 // Parse the character as a digit from 1 to 8
                 let offset = character
                     .to_digit(10)
-                    .expect("'1'..='8' should always parse to digit successfully")
-                    as usize;
+                    .expect("'1'..='8' should always parse to digit successfully") as i8;
                 // Increase file count by offset
                 file += offset;
             }

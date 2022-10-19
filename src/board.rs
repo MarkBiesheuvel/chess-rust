@@ -15,6 +15,9 @@ mod square;
 // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// All permutations of 1,-1 and 2,-2 (in other words L shapes, in other words knight moves)
+const L_SHAPES: [(i8, i8); 8] = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)];
+
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
 pub enum OccupiedBy {
     None,
@@ -64,13 +67,6 @@ impl Board {
         self.pieces().filter(|piece| piece.color() == &piece::Color::Black)
     }
 
-    pub fn is_square_taken(&self, square: &Square) -> bool {
-        match self.squares.get(square) {
-            Some(_) => true,
-            None => false,
-        }
-    }
-
     pub fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
         match self.squares.get(square) {
             Some(piece) => {
@@ -98,9 +94,13 @@ impl Board {
 
         // Iterate over active pieces to collect legal moves
         for (square, piece) in squares_with_active_pieces {
+            // TODO: let the match statement return the Vec and append outside the match statement
             match piece.kind() {
                 Kind::Bishop => {}
-                Kind::Knight => {}
+                Kind::Knight => {
+                    let mut knight_moves = self.legal_knight_moves(square, piece);
+                    legal_moves.append(&mut knight_moves);
+                }
                 Kind::King => {}
                 Kind::Pawn => {
                     let mut pawn_moves = self.legal_pawn_moves(square, piece);
@@ -117,6 +117,37 @@ impl Board {
         // TODO: remove any moves that leave the king in check
 
         legal_moves
+    }
+
+    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+        let mut knight_moves = Moves::new();
+
+        for (file_offset, rank_offset) in L_SHAPES {
+            // Verify that the knight is not jumping of the board
+            if Square::is_valid(origin_square.file() + file_offset)
+                && Square::is_valid(origin_square.rank() + rank_offset)
+            {
+                // Calculate the destination square
+                let destination_square = origin_square.copy_with_offset(file_offset, rank_offset);
+                match self.is_occupied_by(&destination_square) {
+                    OccupiedBy::SameColor => {
+                        // Cannot take piece
+                    }
+                    OccupiedBy::OppositeColor => {
+                        // Can capture opposite color
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                        knight_moves.push(chess_move);
+                    }
+                    OccupiedBy::None => {
+                        // Can move to empty square
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                        knight_moves.push(chess_move);
+                    }
+                };
+            }
+        }
+
+        knight_moves
     }
 
     fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {

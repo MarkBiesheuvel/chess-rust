@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 // Relative imports of sub modules
 pub use color::Color;
 pub use kind::Kind;
@@ -38,17 +37,5 @@ impl Piece {
 
     pub fn kind(&self) -> &Kind {
         &self.kind
-    }
-
-    pub fn legal_moves(&self) -> Vec<(i8, i8)> {
-        match self.kind {
-            Kind::Knight => {
-                vec![(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, 2)]
-            }
-            _ => {
-                // TODO: implement for other pieces
-                vec![]
-            }
-        }
     }
 }
