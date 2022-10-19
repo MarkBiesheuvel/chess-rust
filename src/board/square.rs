@@ -93,6 +93,22 @@ impl Square {
             Some(Square::new(self.file - offset, self.rank))
         }
     }
+
+    pub fn up_iter(&self) -> impl Iterator<Item = Square> + '_ {
+        (1..8).filter_map(|offset| self.up(offset))
+    }
+
+    pub fn down_iter(&self) -> impl Iterator<Item = Square> + '_ {
+        (1..8).filter_map(|offset| self.down(offset))
+    }
+
+    pub fn right_iter(&self) -> impl Iterator<Item = Square> + '_ {
+        (1..8).filter_map(|offset| self.right(offset))
+    }
+
+    pub fn left_iter(&self) -> impl Iterator<Item = Square> + '_ {
+        (1..8).filter_map(|offset| self.left(offset))
+    }
 }
 impl fmt::Display for Square {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
