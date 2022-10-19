@@ -24,14 +24,14 @@ impl Square {
 
     pub fn file(&self) -> char {
         match self.file {
-            1 => 'A',
-            2 => 'B',
-            3 => 'C',
-            4 => 'D',
-            5 => 'E',
-            6 => 'F',
-            7 => 'G',
-            8 => 'H',
+            1 => 'a',
+            2 => 'b',
+            3 => 'c',
+            4 => 'd',
+            5 => 'e',
+            6 => 'f',
+            7 => 'g',
+            8 => 'h',
             _ => {
                 panic!("file needs to be between 1 and 8");
             }
@@ -71,6 +71,26 @@ impl Square {
         } else {
             // Decrease rank by offset
             Some(Square::new(self.file, self.rank - offset))
+        }
+    }
+
+    pub fn right(&self, offset: usize) -> Option<Square> {
+        if self.file + offset > 8 {
+            // Avoid going off the board
+            None
+        } else {
+            // Increase file by offset
+            Some(Square::new(self.file + offset, self.rank))
+        }
+    }
+
+    pub fn left(&self, offset: usize) -> Option<Square> {
+        if self.file <= offset {
+            // Avoid going off the board
+            None
+        } else {
+            // Decrease file by offset
+            Some(Square::new(self.file - offset, self.rank))
         }
     }
 }

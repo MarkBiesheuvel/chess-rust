@@ -15,6 +15,13 @@ mod square;
 // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
+pub enum OccupiedBy {
+    None,
+    SameColor,
+    OppositeColor,
+}
+
 // Chess board consisting of 64 squares and indicators for various special moves
 #[derive(Debug)]
 pub struct Board {
@@ -64,6 +71,19 @@ impl Board {
         }
     }
 
+    pub fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
+        match self.squares.get(square) {
+            Some(piece) => {
+                if *piece.color() == self.active_color {
+                    OccupiedBy::SameColor
+                } else {
+                    OccupiedBy::OppositeColor
+                }
+            }
+            None => OccupiedBy::None,
+        }
+    }
+
     pub fn legal_moves(&self) -> Moves {
         use piece::{Color, Kind};
 
@@ -87,14 +107,14 @@ impl Board {
                         Color::White => {
                             if let Some(destination_square) = origin_square.up(1) {
                                 if !self.is_square_taken(&destination_square) {
-                                    legal_moves.push(ChessMove::new(origin_square, destination_square))
+                                    legal_moves.push(ChessMove::new(origin_square, destination_square, false));
                                 }
                             }
                         }
                         Color::Black => {
                             if let Some(destination_square) = origin_square.down(1) {
                                 if !self.is_square_taken(&destination_square) {
-                                    legal_moves.push(ChessMove::new(origin_square, destination_square))
+                                    legal_moves.push(ChessMove::new(origin_square, destination_square, false));
                                 }
                             }
                         }
@@ -104,10 +124,127 @@ impl Board {
                     // TODO: implement promotion
                 }
                 Kind::Queen => {}
-                Kind::Rook => {}
+                Kind::Rook => {
+                    let mut rook_moves = self.legal_rook_moves(origin_square);
+                    legal_moves.append(&mut rook_moves);
+                }
             }
         }
 
         legal_moves
+    }
+
+    fn legal_rook_moves<'a>(&self, origin_square: &'a Square) -> Moves<'a> {
+        let mut rook_moves = Moves::new();
+
+        // Go up until reach end of board
+        for offset in 1.. {
+            match origin_square.up(offset) {
+                Some(destination_square) => {
+                    match self.is_occupied_by(&destination_square) {
+                        OccupiedBy::SameColor => {
+                            // Cannot take or move through own piece
+                            break;
+                        }
+                        OccupiedBy::OppositeColor => {
+                            // Can capture opposite color, but cannot move through own piece
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, true));
+                            break;
+                        }
+                        OccupiedBy::None => {
+                            // Can move to empty square and keep moving
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, false));
+                        }
+                    };
+                }
+                None => {
+                    // Reached end of the board, stop the loop
+                    break;
+                }
+            }
+        }
+
+        // Go down until reach end of board
+        for offset in 1.. {
+            match origin_square.down(offset) {
+                Some(destination_square) => {
+                    match self.is_occupied_by(&destination_square) {
+                        OccupiedBy::SameColor => {
+                            // Cannot take or move through own piece
+                            break;
+                        }
+                        OccupiedBy::OppositeColor => {
+                            // Can capture opposite color, but cannot move through own piece
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, true));
+                            break;
+                        }
+                        OccupiedBy::None => {
+                            // Can move to empty square and keep moving
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, false));
+                        }
+                    };
+                }
+                None => {
+                    // Reached end of the board, stop the loop
+                    break;
+                }
+            }
+        }
+
+        // Go right until reach end of board
+        for offset in 1.. {
+            match origin_square.right(offset) {
+                Some(destination_square) => {
+                    match self.is_occupied_by(&destination_square) {
+                        OccupiedBy::SameColor => {
+                            // Cannot take or move through own piece
+                            break;
+                        }
+                        OccupiedBy::OppositeColor => {
+                            // Can capture opposite color, but cannot move through own piece
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, true));
+                            break;
+                        }
+                        OccupiedBy::None => {
+                            // Can move to empty square and keep moving
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, false));
+                        }
+                    };
+                }
+                None => {
+                    // Reached end of the board, stop the loop
+                    break;
+                }
+            }
+        }
+
+        // Go left until reach end of board
+        for offset in 1.. {
+            match origin_square.left(offset) {
+                Some(destination_square) => {
+                    match self.is_occupied_by(&destination_square) {
+                        OccupiedBy::SameColor => {
+                            // Cannot take or move through own piece
+                            break;
+                        }
+                        OccupiedBy::OppositeColor => {
+                            // Can capture opposite color, but cannot move through own piece
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, true));
+                            break;
+                        }
+                        OccupiedBy::None => {
+                            // Can move to empty square and keep moving
+                            rook_moves.push(ChessMove::new(origin_square, destination_square, false));
+                        }
+                    };
+                }
+                None => {
+                    // Reached end of the board, stop the loop
+                    break;
+                }
+            }
+        }
+
+        rook_moves
     }
 }

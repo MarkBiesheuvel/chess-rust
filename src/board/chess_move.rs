@@ -9,9 +9,10 @@ use crate::board;
 pub struct ChessMove<'a> {
     origin_square: &'a board::Square,
     destination_square: board::Square,
+    is_capture: bool,
 }
 impl ChessMove<'_> {
-    pub fn new(origin_square: &board::Square, destination_square: board::Square) -> ChessMove {
+    pub fn new(origin_square: &board::Square, destination_square: board::Square, is_capture: bool) -> ChessMove {
         if *origin_square == destination_square {
             panic!("a move needs to go from one square to a different one");
         }
@@ -19,17 +20,21 @@ impl ChessMove<'_> {
         ChessMove {
             origin_square,
             destination_square,
+            is_capture,
         }
     }
 }
 impl fmt::Display for ChessMove<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Coordinate notation
-        // TODO: add &Piece and switch to Long algebraic notation
+        // Long algebraic notation (with missing piece annotation)
+        // TODO: add &Piece
         // TODO: add captures
         // TODO: add check(mate)
         // TODO: add castling
-        write!(f, "{}-", self.origin_square)?;
+        write!(f, "{}", self.origin_square)?;
+        if self.is_capture {
+            write!(f, "x")?;
+        }
         write!(f, "{}", self.destination_square)?;
         Ok(())
     }
