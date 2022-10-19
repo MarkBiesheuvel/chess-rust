@@ -4,9 +4,8 @@ use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
     // Create a board with an ongoing game
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-    // let record = "3r4/1p3pk1/p4b2/P3p2p/1PP1P1b1/4K1p1/1R6/2r5 b - - 0 37";
-    // let board = Board::forsyth_edwards_notation(record)?;
-    let board = Board::starting_position();
+    let record = "rn1k1bnr/2p1pp2/1p4p1/pBq1Rb2/2Q4p/2N2N2/PPPP1PPP/R1B3K1 w - a6 0 11";
+    let board = Board::forsyth_edwards_notation(record)?;
 
     println!("{}", board);
 
