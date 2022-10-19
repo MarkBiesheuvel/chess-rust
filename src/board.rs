@@ -4,7 +4,7 @@ use crate::parser;
 use crate::piece;
 // Relative imports of sub modules
 pub use castling_availability::CastlingAvailability;
-pub use chess_move::{ChessMove, Moves};
+pub use chess_move::{Action, ChessMove, Moves};
 pub use square::{Square, Squares};
 mod castling_availability;
 mod chess_move;
@@ -85,7 +85,7 @@ impl Board {
     }
 
     pub fn legal_moves(&self) -> Moves {
-        use piece::{Color, Kind};
+        use piece::Kind;
 
         // Start out with 0 moves
         let mut legal_moves = Moves::new();
@@ -97,44 +97,74 @@ impl Board {
             .filter(|(_, piece)| piece.color() == &self.active_color);
 
         // Iterate over active pieces to collect legal moves
-        for (origin_square, piece) in squares_with_active_pieces {
+        for (square, piece) in squares_with_active_pieces {
             match piece.kind() {
                 Kind::Bishop => {}
                 Kind::Knight => {}
                 Kind::King => {}
                 Kind::Pawn => {
-                    match piece.color() {
-                        Color::White => {
-                            if let Some(destination_square) = origin_square.up(1) {
-                                if !self.is_square_taken(&destination_square) {
-                                    legal_moves.push(ChessMove::new(origin_square, destination_square, false));
-                                }
-                            }
-                        }
-                        Color::Black => {
-                            if let Some(destination_square) = origin_square.down(1) {
-                                if !self.is_square_taken(&destination_square) {
-                                    legal_moves.push(ChessMove::new(origin_square, destination_square, false));
-                                }
-                            }
-                        }
-                    }
-                    // TODO: implement 2-square first move
-                    // TODO: implement en passant
-                    // TODO: implement promotion
+                    let mut pawn_moves = self.legal_pawn_moves(square, piece);
+                    legal_moves.append(&mut pawn_moves);
                 }
                 Kind::Queen => {}
                 Kind::Rook => {
-                    let mut rook_moves = self.legal_rook_moves(origin_square);
+                    let mut rook_moves = self.legal_rook_moves(square, piece);
                     legal_moves.append(&mut rook_moves);
                 }
             }
         }
 
+        // TODO: remove any moves that leave the king in check
+
         legal_moves
     }
 
-    fn legal_rook_moves<'a>(&self, origin_square: &'a Square) -> Moves<'a> {
+    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+        use piece::Color;
+
+        let mut pawn_moves = Moves::new();
+
+        // List of forward pawn moves, length of just one or two
+        let mut line = Vec::new();
+        match self.active_color {
+            Color::White => {
+                // One square forward
+                line.push(origin_square.up(1));
+                // Two squares forward
+                if origin_square.rank() == 2 {
+                    line.push(origin_square.up(2));
+                }
+            }
+            Color::Black => {
+                // One square forward
+                line.push(origin_square.down(1));
+                // Two squares forward
+                if origin_square.rank() == 7 {
+                    line.push(origin_square.down(2));
+                }
+            }
+        };
+
+        for destination_square in line {
+            match self.is_occupied_by(&destination_square) {
+                OccupiedBy::None => {
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                    pawn_moves.push(chess_move);
+                }
+                _ => {
+                    // Cannot capture or move through occupied squares, regardless of color
+                    break;
+                }
+            }
+        }
+
+        // TODO: implement diagonal captures
+        // TODO: implement en passant
+        // TODO: implement promotion
+        pawn_moves
+    }
+
+    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
         let mut rook_moves = Moves::new();
 
         let lines: [Vec<Square>; 4] = [
@@ -152,13 +182,17 @@ impl Board {
                         break;
                     }
                     OccupiedBy::OppositeColor => {
-                        // Can capture opposite color, but cannot move through own piece
-                        rook_moves.push(ChessMove::new(origin_square, destination_square, true));
+                        // Can capture opposite color
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                        rook_moves.push(chess_move);
+
+                        // But cannot move any further
                         break;
                     }
                     OccupiedBy::None => {
                         // Can move to empty square and keep moving
-                        rook_moves.push(ChessMove::new(origin_square, destination_square, false));
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                        rook_moves.push(chess_move);
                     }
                 };
             }

@@ -22,8 +22,65 @@ impl Square {
         Square { file, rank }
     }
 
-    pub fn file(&self) -> char {
-        match self.file {
+    pub fn file(&self) -> usize {
+        self.file
+    }
+
+    pub fn rank(&self) -> usize {
+        self.rank
+    }
+
+    pub fn up(&self, offset: usize) -> Square {
+        // Increase rank by offset
+        Square::new(self.file, self.rank + offset)
+    }
+
+    pub fn down(&self, offset: usize) -> Square {
+        // Decrease rank by offset
+        Square::new(self.file, self.rank - offset)
+    }
+
+    pub fn right(&self, offset: usize) -> Square {
+        // Increase file by offset
+        Square::new(self.file + offset, self.rank)
+    }
+
+    pub fn left(&self, offset: usize) -> Square {
+        // Decrease file by offset
+        Square::new(self.file - offset, self.rank)
+    }
+
+    pub fn up_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.rank + offset <= 8)
+            .map(|offset| self.up(offset))
+            .collect()
+    }
+
+    pub fn down_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.rank - offset >= 1)
+            .map(|offset| self.down(offset))
+            .collect()
+    }
+
+    pub fn right_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.file + offset <= 8)
+            .map(|offset| self.right(offset))
+            .collect()
+    }
+
+    pub fn left_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.file - offset >= 1)
+            .map(|offset| self.left(offset))
+            .collect()
+    }
+}
+impl fmt::Display for Square {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let file = match self.file {
             1 => 'a',
             2 => 'b',
             3 => 'c',
@@ -35,11 +92,8 @@ impl Square {
             _ => {
                 panic!("file needs to be between 1 and 8");
             }
-        }
-    }
-
-    pub fn rank(&self) -> char {
-        match self.rank {
+        };
+        let rank = match self.rank {
             1 => '1',
             2 => '2',
             3 => '3',
@@ -51,80 +105,8 @@ impl Square {
             _ => {
                 panic!("file needs to be between 1 and 8");
             }
-        }
-    }
-
-    pub fn up(&self, offset: usize) -> Option<Square> {
-        if self.rank + offset > 8 {
-            // Avoid going off the board
-            None
-        } else {
-            // Increase rank by offset
-            Some(Square::new(self.file, self.rank + offset))
-        }
-    }
-
-    pub fn down(&self, offset: usize) -> Option<Square> {
-        if self.rank <= offset {
-            // Avoid going off the board
-            None
-        } else {
-            // Decrease rank by offset
-            Some(Square::new(self.file, self.rank - offset))
-        }
-    }
-
-    pub fn right(&self, offset: usize) -> Option<Square> {
-        if self.file + offset > 8 {
-            // Avoid going off the board
-            None
-        } else {
-            // Increase file by offset
-            Some(Square::new(self.file + offset, self.rank))
-        }
-    }
-
-    pub fn left(&self, offset: usize) -> Option<Square> {
-        if self.file <= offset {
-            // Avoid going off the board
-            None
-        } else {
-            // Decrease file by offset
-            Some(Square::new(self.file - offset, self.rank))
-        }
-    }
-
-    pub fn up_vector(&self) -> Vec<Square> {
-        (1..)
-            .take_while(|offset| self.rank + offset <= 8)
-            .map(|offset| self.up(offset).expect("take_while should have stopped in time"))
-            .collect()
-    }
-
-    pub fn down_vector(&self) -> Vec<Square> {
-        (1..)
-            .take_while(|offset| self.rank - offset >= 1)
-            .map(|offset| self.down(offset).expect("take_while should have stopped in time"))
-            .collect()
-    }
-
-    pub fn right_vector(&self) -> Vec<Square> {
-        (1..)
-            .take_while(|offset| self.file + offset <= 8)
-            .map(|offset| self.right(offset).expect("take_while should have stopped in time"))
-            .collect()
-    }
-
-    pub fn left_vector(&self) -> Vec<Square> {
-        (1..)
-            .take_while(|offset| self.file - offset >= 1)
-            .map(|offset| self.left(offset).expect("take_while should have stopped in time"))
-            .collect()
-    }
-}
-impl fmt::Display for Square {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.file(), self.rank())
+        };
+        write!(f, "{}{}", file, rank)
     }
 }
 
