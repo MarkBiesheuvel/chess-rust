@@ -94,20 +94,32 @@ impl Square {
         }
     }
 
-    pub fn up_iter(&self) -> impl Iterator<Item = Square> + '_ {
-        (1..8).filter_map(|offset| self.up(offset))
+    pub fn up_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.rank + offset <= 8)
+            .map(|offset| self.up(offset).expect("take_while should have stopped in time"))
+            .collect()
     }
 
-    pub fn down_iter(&self) -> impl Iterator<Item = Square> + '_ {
-        (1..8).filter_map(|offset| self.down(offset))
+    pub fn down_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.rank - offset >= 1)
+            .map(|offset| self.down(offset).expect("take_while should have stopped in time"))
+            .collect()
     }
 
-    pub fn right_iter(&self) -> impl Iterator<Item = Square> + '_ {
-        (1..8).filter_map(|offset| self.right(offset))
+    pub fn right_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.file + offset <= 8)
+            .map(|offset| self.right(offset).expect("take_while should have stopped in time"))
+            .collect()
     }
 
-    pub fn left_iter(&self) -> impl Iterator<Item = Square> + '_ {
-        (1..8).filter_map(|offset| self.left(offset))
+    pub fn left_vector(&self) -> Vec<Square> {
+        (1..)
+            .take_while(|offset| self.file - offset >= 1)
+            .map(|offset| self.left(offset).expect("take_while should have stopped in time"))
+            .collect()
     }
 }
 impl fmt::Display for Square {
