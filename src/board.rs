@@ -5,10 +5,12 @@ use crate::piece;
 // Relative imports of sub modules
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
+pub use offset::Offset;
 pub use square::{Square, Squares};
 mod castling_availability;
 mod chess_move;
 mod display;
+mod offset;
 mod square;
 
 // Standard starting position for a game of chess
@@ -233,18 +235,18 @@ impl Board {
         match self.active_color {
             Color::White => {
                 // One square forward
-                line.push(origin_square.copy_with_offset(0, 1));
+                line.push(origin_square.copy_with_offset(&Offset::new(0, 1)));
                 // Two squares forward
                 if origin_square.rank() == 2 {
-                    line.push(origin_square.copy_with_offset(0, 2));
+                    line.push(origin_square.copy_with_offset(&Offset::new(0, 2)));
                 }
             }
             Color::Black => {
                 // One square forward
-                line.push(origin_square.copy_with_offset(0, -1));
+                line.push(origin_square.copy_with_offset(&Offset::new(0, -1)));
                 // Two squares forward
                 if origin_square.rank() == 7 {
-                    line.push(origin_square.copy_with_offset(0, -2));
+                    line.push(origin_square.copy_with_offset(&Offset::new(0, -2)));
                 }
             }
         };

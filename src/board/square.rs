@@ -2,15 +2,34 @@
 use std::collections;
 use std::fmt;
 // Absolute imports within crate
-use crate::piece;
+use crate::board::Offset;
+use crate::piece::Piece;
 
 // TODO: create offset class
 
 // All offsets corresponding to knight moves
-const KNIGHT_MOVE_OFFSETS: [(i8, i8); 8] = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)];
+const KNIGHT_MOVE_OFFSETS: [Offset; 8] = [
+    Offset::new(2, 1),
+    Offset::new(2, -1),
+    Offset::new(-2, 1),
+    Offset::new(-2, -1),
+    Offset::new(1, 2),
+    Offset::new(1, -2),
+    Offset::new(-1, 2),
+    Offset::new(-1, -2),
+];
 
 // All offsets corresponding to knight moves
-const KING_MOVE_OFFSETS: [(i8, i8); 8] = [(1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)];
+const KING_MOVE_OFFSETS: [Offset; 8] = [
+    Offset::new(1, 1),
+    Offset::new(1, 0),
+    Offset::new(1, -1),
+    Offset::new(0, -1),
+    Offset::new(-1, -1),
+    Offset::new(-1, 0),
+    Offset::new(-1, 1),
+    Offset::new(0, 1),
+];
 
 // Type for squares of the chess board
 #[derive(Debug, Eq, Hash, PartialEq)]
@@ -46,83 +65,91 @@ impl Square {
         self.rank
     }
 
-    pub fn is_valid_offset(&self, file_offset: i8, rank_offset: i8) -> bool {
-        Square::is_valid_file(self.file + file_offset) && Square::is_valid_rank(self.rank + rank_offset)
+    pub fn is_valid_offset(&self, offset: &Offset) -> bool {
+        Square::is_valid_file(self.file() + offset.file()) && Square::is_valid_rank(self.rank() + offset.rank())
     }
 
-    pub fn copy_with_offset(&self, file_offset: i8, rank_offset: i8) -> Square {
-        Square::new(self.file + file_offset, self.rank + rank_offset)
+    pub fn copy_with_offset(&self, offset: &Offset) -> Square {
+        Square::new(self.file() + offset.file(), self.rank() + offset.rank())
     }
 
     pub fn top_vertical(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(0, *offset))
-            .map(|offset| self.copy_with_offset(0, offset))
+            .map(|i| Offset::new(0, i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn down_vertical(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(0, -offset))
-            .map(|offset| self.copy_with_offset(0, -offset))
+            .map(|i| Offset::new(0, -i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn right_horizontal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(*offset, 0))
-            .map(|offset| self.copy_with_offset(offset, 0))
+            .map(|i| Offset::new(i, 0))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn left_horizontal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(-offset, 0))
-            .map(|offset| self.copy_with_offset(-offset, 0))
+            .map(|i| Offset::new(i, 0))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn top_right_diagonal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(*offset, *offset))
-            .map(|offset| self.copy_with_offset(offset, offset))
+            .map(|i| Offset::new(i, i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn top_left_diagonal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(-offset, *offset))
-            .map(|offset| self.copy_with_offset(-offset, offset))
+            .map(|i| Offset::new(-i, i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn bottom_right_diagonal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(*offset, -offset))
-            .map(|offset| self.copy_with_offset(offset, -offset))
+            .map(|i| Offset::new(i, -i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn bottom_left_diagonal(&self) -> Vec<Square> {
         (1..)
-            .take_while(|offset| self.is_valid_offset(-offset, -offset))
-            .map(|offset| self.copy_with_offset(-offset, -offset))
+            .map(|i| Offset::new(-i, -i))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn knight_moves(&self) -> Vec<Square> {
         KNIGHT_MOVE_OFFSETS
             .iter()
-            .filter(|(file_offset, rank_offset)| self.is_valid_offset(*file_offset, *rank_offset))
-            .map(|(file_offset, rank_offset)| self.copy_with_offset(*file_offset, *rank_offset))
+            .filter(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(offset))
             .collect()
     }
 
     pub fn king_moves(&self) -> Vec<Square> {
         KING_MOVE_OFFSETS
             .iter()
-            .filter(|(file_offset, rank_offset)| self.is_valid_offset(*file_offset, *rank_offset))
-            .map(|(file_offset, rank_offset)| self.copy_with_offset(*file_offset, *rank_offset))
+            .filter(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(offset))
             .collect()
     }
 }
@@ -159,4 +186,4 @@ impl fmt::Display for Square {
 }
 
 // Custom type alias for 8×8 board of squares
-pub type Squares = collections::HashMap<Square, piece::Piece>;
+pub type Squares = collections::HashMap<Square, Piece>;
