@@ -64,6 +64,10 @@ impl Board {
         self.pieces().filter(|piece| piece.color() == &piece::Color::Black)
     }
 
+    pub fn is_empty(&self, square: &Square) -> bool {
+        !self.squares.contains_key(square)
+    }
+
     pub fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
         match self.squares.get(square) {
             Some(piece) => {
@@ -80,8 +84,6 @@ impl Board {
     pub fn legal_moves(&self) -> Moves {
         use piece::Kind;
 
-        // TODO: remove any moves that leave the king in check
-
         self.squares
             .iter()
             .filter(|(_, piece)| piece.color() == &self.active_color)
@@ -93,6 +95,7 @@ impl Board {
                 Kind::Queen => self.legal_queen_moves(square, piece),
                 Kind::Rook => self.legal_rook_moves(square, piece),
             })
+            // TODO: .filter() any moves that leave or bring the king in check
             .collect()
     }
 
@@ -133,10 +136,67 @@ impl Board {
         bishop_moves
     }
 
-    fn legal_king_moves<'a>(&self, _origin_square: &'a Square, _piece: &'a piece::Piece) -> Moves<'a> {
-        Moves::new()
-        // TODO: implement simple King moves
-        // TODO: implement castling
+    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+        let mut king_moves = Moves::new();
+
+        // Regular king moves
+        for destination_square in origin_square.king_moves() {
+            match self.is_occupied_by(&destination_square) {
+                OccupiedBy::SameColor => {
+                    // Cannot take piece
+                }
+                OccupiedBy::OppositeColor => {
+                    // Can capture opposite color
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                    king_moves.push(chess_move);
+                }
+                OccupiedBy::None => {
+                    // Can move to empty square
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                    king_moves.push(chess_move);
+                }
+            };
+        }
+
+        // Short castling
+        if self.castling_availability.is_short_castle_available(&self.active_color) {
+            // Check whether the two square right of the king are empty
+            let in_between_square_are_empty = origin_square
+                .right_horizontal()
+                .iter()
+                .take(2)
+                .all(|square| self.is_empty(square));
+
+            // TODO: verify in-between sqaures are not in check
+
+            // Can short castle
+            if in_between_square_are_empty {
+                let destination_square = Square::new(7, 1);
+                let chess_move = ChessMove::new(piece, origin_square, Action::ShortCastle, destination_square);
+                king_moves.push(chess_move);
+            }
+        }
+
+        // Long castling
+        if self.castling_availability.is_long_castle_available(&self.active_color) {
+            // Check whether the three square left of the king are empty
+            let in_between_square_are_empty = origin_square
+                .left_horizontal()
+                .iter()
+                .take(3)
+                .all(|square| self.is_empty(square));
+
+            // TODO: verify in-between sqaures are not in check
+
+            // Can short castle
+            if in_between_square_are_empty {
+                let destination_square = Square::new(3, 1);
+                let chess_move = ChessMove::new(piece, origin_square, Action::LongCastle, destination_square);
+                king_moves.push(chess_move);
+            }
+        }
+
+        king_moves
     }
 
     fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {

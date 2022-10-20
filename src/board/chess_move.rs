@@ -8,6 +8,9 @@ use crate::piece;
 pub enum Action {
     Move,
     Capture,
+    // TODO: add MovePromotion and CapturePromotion
+    ShortCastle,
+    LongCastle,
 }
 
 // The starting square is owned by the Board, so we are just borrowing (referencing) it in the ChessMove
@@ -44,45 +47,57 @@ impl fmt::Display for ChessMove<'_> {
         use piece::Kind;
         // Long algebraic notation
 
-        // TODO: add captures
-        // TODO: add check(mate)
-        // TODO: add castling
-
-        // Letter as used in algebraic notation
-        match self.piece.kind() {
-            Kind::Bishop => {
-                write!(f, "B")?;
-            }
-            Kind::King => {
-                write!(f, "K")?;
-            }
-            Kind::Knight => {
-                write!(f, "N")?;
-            }
-            Kind::Pawn => {
-                // Implicit
-            }
-            Kind::Queen => {
-                write!(f, "Q")?;
-            }
-            Kind::Rook => {
-                write!(f, "R")?;
-            }
-        }
-
-        // Starting square
-        write!(f, "{}", self.origin_square)?;
-
-        // Capture or not capture
         match self.action {
-            Action::Capture => {
-                write!(f, "x")?;
+            Action::ShortCastle => {
+                // Short castle notation
+                write!(f, "0-0")?;
             }
-            Action::Move => {}
+            Action::LongCastle => {
+                // Long castle notation
+                write!(f, "0-0-0")?;
+            }
+            _ => {
+                // Letter as used in algebraic notation
+                match self.piece.kind() {
+                    Kind::Bishop => {
+                        write!(f, "B")?;
+                    }
+                    Kind::King => {
+                        write!(f, "K")?;
+                    }
+                    Kind::Knight => {
+                        write!(f, "N")?;
+                    }
+                    Kind::Pawn => {
+                        // Implicit
+                    }
+                    Kind::Queen => {
+                        write!(f, "Q")?;
+                    }
+                    Kind::Rook => {
+                        write!(f, "R")?;
+                    }
+                }
+
+                // Starting square
+                // TODO: remove when not need and keep when ambiguous (short algebraic)
+                write!(f, "{}", self.origin_square)?;
+
+                // Captures
+                match self.action {
+                    Action::Capture => {
+                        write!(f, "x")?;
+                    }
+                    _ => {}
+                }
+
+                // Destination square
+                write!(f, "{}", self.destination_square)?;
+            }
         }
 
-        // Destination square
-        write!(f, "{}", self.destination_square)?;
+        // TODO: add check(mate)
+        // TODO: add promotions
 
         // All okay
         Ok(())
