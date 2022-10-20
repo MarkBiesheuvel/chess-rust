@@ -1,5 +1,6 @@
 use chess::board::Board;
 use chess::parser::ParseError;
+use chess::piece::Kind;
 
 #[test]
 fn invalid_piece_error() {
@@ -106,11 +107,11 @@ fn valid_record_no_captures() {
     match result {
         Ok(board) => {
             // Should still have 32 pieces on the board
-            assert_eq!(board.pieces().count(), 32);
+            assert_eq!(board.pieces().len(), 32);
             // Should still have 16 white pieces
-            assert_eq!(board.white_pieces().count(), 16);
+            assert_eq!(board.white_pieces().len(), 16);
             // Should still have 16 black pieces
-            assert_eq!(board.black_pieces().count(), 16);
+            assert_eq!(board.black_pieces().len(), 16);
         }
         _ => assert!(false),
     };
@@ -125,11 +126,11 @@ fn valid_record_end_game() {
     match result {
         Ok(board) => {
             // Should have only 17 pieces left
-            assert_eq!(board.pieces().count(), 17);
+            assert_eq!(board.pieces().len(), 17);
             // Should have only 6 white pieces left
-            assert_eq!(board.white_pieces().count(), 6);
+            assert_eq!(board.white_pieces().len(), 6);
             // Should have only 11 black pieces left
-            assert_eq!(board.black_pieces().count(), 11);
+            assert_eq!(board.black_pieces().len(), 11);
         }
         _ => assert!(false),
     };
@@ -141,12 +142,23 @@ fn starting_position() {
     let board = Board::starting_position();
 
     // Should start with 32 pieces on the board
-    assert_eq!(board.pieces().count(), 32);
+    assert_eq!(board.pieces().len(), 32);
     // Should start with 16 white pieces
-    assert_eq!(board.white_pieces().count(), 16);
+    assert_eq!(board.white_pieces().len(), 16);
     // Should start with 16 black pieces
-    assert_eq!(board.black_pieces().count(), 16);
+    assert_eq!(board.black_pieces().len(), 16);
 
     // (8 pawns × 2 moves) + (2 knights × 2 moves) = 20 moves
     assert_eq!(board.legal_moves().len(), 20);
+
+    // Calculate the relative value of all the pieces (except the king)
+    let total_value: f32 = board
+        .white_pieces()
+        .into_iter()
+        .filter(|piece| *piece.kind() != Kind::King)
+        .map(|piece| (*piece).kind().relative_value())
+        .sum();
+
+    // Take floating point erros into account
+    assert!(41.5 < total_value && total_value < 41.53);
 }

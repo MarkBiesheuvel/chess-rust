@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 // Absolute imports within crate
 use crate::parser;
 use crate::piece;
@@ -18,7 +17,7 @@ mod square;
 const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
-pub enum OccupiedBy {
+enum OccupiedBy {
     None,
     SameColor,
     OppositeColor,
@@ -51,26 +50,32 @@ impl Board {
         parser::parse_forsyth_edwards_notation(record)
     }
 
-    // Returns all pieces as an Iterator
-    pub fn pieces(&self) -> impl Iterator<Item = &piece::Piece> {
-        self.squares.iter().map(|(_, piece)| piece)
+    // Returns all pieces
+    pub fn pieces(&self) -> Vec<&piece::Piece> {
+        self.squares.values().collect()
     }
 
-    // Returns all white pieces as an Iterator
-    pub fn white_pieces(&self) -> impl Iterator<Item = &piece::Piece> {
-        self.pieces().filter(|piece| piece.color() == &piece::Color::White)
+    // Returns all white pieces
+    pub fn white_pieces(&self) -> Vec<&piece::Piece> {
+        self.pieces()
+            .into_iter()
+            .filter(|piece| piece.color() == &piece::Color::White)
+            .collect()
     }
 
-    // Returns all white pieces as an Iterator
-    pub fn black_pieces(&self) -> impl Iterator<Item = &piece::Piece> {
-        self.pieces().filter(|piece| piece.color() == &piece::Color::Black)
+    // Returns all black pieces
+    pub fn black_pieces(&self) -> Vec<&piece::Piece> {
+        self.pieces()
+            .into_iter()
+            .filter(|piece| piece.color() == &piece::Color::Black)
+            .collect()
     }
 
-    pub fn is_empty(&self, square: &Square) -> bool {
+    fn is_empty(&self, square: &Square) -> bool {
         !self.squares.contains_key(square)
     }
 
-    pub fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
+    fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
         match self.squares.get(square) {
             Some(piece) => {
                 if *piece.color() == self.active_color {
