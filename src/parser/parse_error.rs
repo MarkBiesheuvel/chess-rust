@@ -8,6 +8,7 @@ pub enum ParseError {
     InvalidCastling(char),
     InvalidColor(char),
     InvalidFile(char),
+    InvalidRank(char),
     InvalidPiece(char),
     UnexpectedEnd,
     IncompletePiecePlacement,
@@ -23,6 +24,9 @@ impl fmt::Display for ParseError {
             }
             ParseError::InvalidFile(character) => {
                 write!(f, "invalid file for en passant target square provided: {:?}", character)
+            }
+            ParseError::InvalidRank(character) => {
+                write!(f, "invalid rank for en passant target square provided: {:?}", character)
             }
             ParseError::InvalidPiece(character) => {
                 write!(f, "invalid piece provided: {:?}", character)

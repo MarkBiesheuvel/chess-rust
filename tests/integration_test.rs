@@ -86,6 +86,8 @@ fn invalid_castling_availability() {
     };
 }
 
+// TODO: write test for invalid en passant square
+
 #[test]
 fn unexpected_end() {
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next

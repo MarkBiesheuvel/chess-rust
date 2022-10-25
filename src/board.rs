@@ -29,14 +29,21 @@ pub struct Board {
     squares: Squares,
     active_color: piece::Color,
     castling_availability: CastlingAvailability,
+    en_passant_target: Option<Square>,
 }
 impl Board {
     // Public initializer
-    pub fn new(squares: Squares, active_color: piece::Color, castling_availability: CastlingAvailability) -> Board {
+    pub fn new(
+        squares: Squares,
+        active_color: piece::Color,
+        castling_availability: CastlingAvailability,
+        en_passant_target: Option<Square>,
+    ) -> Board {
         Board {
             squares,
             active_color,
             castling_availability,
+            en_passant_target,
         }
     }
 
@@ -270,8 +277,15 @@ impl Board {
         }
 
         // TODO: implement diagonal captures
+
         // TODO: implement en passant
+        match self.en_passant_target {
+            Some(_) => {}
+            None => {}
+        }
+
         // TODO: implement promotion
+
         pawn_moves
     }
 

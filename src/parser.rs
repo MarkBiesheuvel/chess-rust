@@ -1,13 +1,13 @@
 // Absolute imports within crate
-use crate::board;
-use crate::piece;
+use crate::board::{Board, CastlingAvailability, Square, Squares};
+use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 use field_iterator::FieldIterator;
 pub use parse_error::ParseError;
 mod field_iterator;
 mod parse_error;
 
-pub fn parse_forsyth_edwards_notation(record: &str) -> Result<board::Board, ParseError> {
+pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, ParseError> {
     // Deconstruct specification into the different fields
     let mut field_iterator = FieldIterator::new(record);
 
@@ -25,17 +25,22 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<board::Board, Pars
 
     // Detect en passant target square
     let field = field_iterator.next()?;
-    let _en_passant_target_square = parse_en_passant_target_square(field)?;
+    let en_passant_target = parse_en_passant_target_square(field)?;
 
     // TODO: create struct for target square
     // TODO: implement parse function for halfmove clock and fullmove number
 
-    Ok(board::Board::new(squares, active_color, castling_availability))
+    Ok(Board::new(
+        squares,
+        active_color,
+        castling_availability,
+        en_passant_target,
+    ))
 }
 
-fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, ParseError> {
+fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, ParseError> {
     // Start with empty squares
-    let mut squares = board::Squares::new();
+    let mut squares = Squares::new();
 
     // Go from highest rank to lowest, and from lowest file to highest
     let mut rank: i8 = 8;
@@ -66,7 +71,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
             // Any character implies a piece on the current square, so  and increase file
             _ => {
                 // Create a new square and piece
-                let square = board::Square::new(file, rank);
+                let square = Square::new(file, rank);
                 let piece = parse_piece(character)?;
                 // Place piece on a square
                 squares.insert(square, piece);
@@ -84,10 +89,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<board::Squares, 
     }
 }
 
-fn parse_piece(character: char) -> Result<piece::Piece, ParseError> {
-    // Pull Piece, Color, and Kind into scope for this function only
-    use piece::{Color, Kind, Piece};
-
+fn parse_piece(character: char) -> Result<Piece, ParseError> {
     // Return new piece
     match character {
         'B' => Ok(Piece::new(Color::White, Kind::Bishop)),
@@ -106,14 +108,14 @@ fn parse_piece(character: char) -> Result<piece::Piece, ParseError> {
     }
 }
 
-fn parse_active_color(active_color_field: &str) -> Result<piece::Color, ParseError> {
+fn parse_active_color(active_color_field: &str) -> Result<Color, ParseError> {
     // Detect whether it is the turn of black or white
     match active_color_field.chars().nth(0) {
         Some(character) => match character {
             // Blacks turn to move
-            'b' => Ok(piece::Color::Black),
+            'b' => Ok(Color::Black),
             // Whites turn to move
-            'w' => Ok(piece::Color::White),
+            'w' => Ok(Color::White),
             // Invalid character
             _ => Err(ParseError::InvalidColor(character)),
         },
@@ -122,7 +124,7 @@ fn parse_active_color(active_color_field: &str) -> Result<piece::Color, ParseErr
     }
 }
 
-fn parse_castling_availability(castling_availability_field: &str) -> Result<board::CastlingAvailability, ParseError> {
+fn parse_castling_availability(castling_availability_field: &str) -> Result<CastlingAvailability, ParseError> {
     // By default, no castling is allowed
     let mut white_kingside = false;
     let mut white_queenside = false;
@@ -158,7 +160,7 @@ fn parse_castling_availability(castling_availability_field: &str) -> Result<boar
         }
     }
 
-    Ok(board::CastlingAvailability::new(
+    Ok(CastlingAvailability::new(
         white_kingside,
         white_queenside,
         black_kingside,
@@ -166,17 +168,52 @@ fn parse_castling_availability(castling_availability_field: &str) -> Result<boar
     ))
 }
 
-fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Result<Option<&str>, ParseError> {
-    // Detect whether it is the turn of black or white
-    match en_passant_target_square_field.chars().nth(0) {
-        Some(character) => match character {
-            // First character should be a file
-            // TODO: read second character and convert it to a custom Target type
-            'a'..='h' => Ok(Some(en_passant_target_square_field)),
-            // No en passant target square, so Ok (instead of Err) and None (instead of Some)
-            '-' => Ok(None),
+fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Result<Option<Square>, ParseError> {
+    // Detect the target square for en passant
+    let mut characters = en_passant_target_square_field.chars();
+
+    let first_character = characters.next();
+    let second_character = characters.next();
+
+    // Handle special case, no en passant
+    if first_character == Some('-') {
+        return Ok(None);
+    }
+
+    // Expecting valid file and rank now
+    let file = parse_en_passant_target_file(first_character)?;
+    let rank = parse_en_passant_target_rank(second_character)?;
+
+    Ok(Some(Square::new(file, rank)))
+}
+
+fn parse_en_passant_target_file(character: Option<char>) -> Result<i8, ParseError> {
+    match character {
+        Some(file) => match file {
+            'a' => Ok(1),
+            'b' => Ok(2),
+            'c' => Ok(3),
+            'd' => Ok(4),
+            'e' => Ok(5),
+            'f' => Ok(6),
+            'g' => Ok(7),
+            'h' => Ok(8),
             // Any other character is error
-            _ => Err(ParseError::InvalidFile(character)),
+            _ => Err(ParseError::InvalidFile(file)),
+        },
+        // End of specification reached too early
+        None => Err(ParseError::UnexpectedEnd),
+    }
+}
+
+fn parse_en_passant_target_rank(character: Option<char>) -> Result<i8, ParseError> {
+    match character {
+        Some(rank) => match rank {
+            '1'..='8' => Ok(rank
+                .to_digit(10)
+                .expect("'1'..='8' should always parse to digit successfully") as i8),
+            // Any other character is error
+            _ => Err(ParseError::InvalidRank(rank)),
         },
         // End of specification reached too early
         None => Err(ParseError::UnexpectedEnd),
