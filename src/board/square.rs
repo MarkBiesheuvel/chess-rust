@@ -5,8 +5,6 @@ use std::fmt;
 use crate::board::Offset;
 use crate::piece::Piece;
 
-// TODO: create offset class
-
 // All offsets corresponding to knight moves
 const KNIGHT_MOVE_OFFSETS: [Offset; 8] = [
     Offset::new(2, 1),
@@ -34,8 +32,8 @@ const KING_MOVE_OFFSETS: [Offset; 8] = [
 // Type for squares of the chess board
 #[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Square {
-    file: i8,
-    rank: i8,
+    file: i8, // TODO: create type alias
+    rank: i8, // TODO: create type alias
 }
 impl Square {
     fn is_valid_file(file: i8) -> bool {
@@ -74,64 +72,56 @@ impl Square {
     }
 
     pub fn top_vertical(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(0, i))
+        line!(0, 1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn down_vertical(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(0, -i))
+        line!(0, -1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn right_horizontal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(i, 0))
+        line!(1, 0)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn left_horizontal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(-i, 0))
+        line!(-1, 0)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn top_right_diagonal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(i, i))
+        line!(1, 1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn top_left_diagonal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(-i, i))
+        line!(-1, 1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn bottom_right_diagonal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(i, -i))
+        line!(1, -1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
     pub fn bottom_left_diagonal(&self) -> Vec<Square> {
-        (1..)
-            .map(|i| Offset::new(-i, -i))
+        line!(-1, -1)
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()

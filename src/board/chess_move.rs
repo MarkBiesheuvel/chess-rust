@@ -2,7 +2,7 @@
 use std::fmt;
 // Absolute imports within crate
 use crate::board::Square;
-use crate::piece::{Piece, Kind};
+use crate::piece::{Kind, Piece};
 
 #[derive(Debug)]
 pub enum Action {

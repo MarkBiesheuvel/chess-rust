@@ -1,6 +1,6 @@
 // Absolute imports within crate
-use crate::parser::{{self, ParseError}};
-use crate::piece::{Piece, Color, Kind};
+use crate::parser::{self, ParseError};
+use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
@@ -11,10 +11,6 @@ mod chess_move;
 mod display;
 mod offset;
 mod square;
-
-// Standard starting position for a game of chess
-// Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-const STARTING_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
 enum OccupiedBy {
@@ -49,7 +45,54 @@ impl Board {
 
     // Initialize a board with the starting position
     pub fn starting_position() -> Board {
-        parser::parse_forsyth_edwards_notation(STARTING_POSITION).expect("Hardcoded FEN should not give parser error")
+        let squares = squares! {
+            // 1st rank
+            (1, 1) => (Color::White, Kind::Rook),
+            (2, 1) => (Color::White, Kind::Knight),
+            (3, 1) => (Color::White, Kind::Bishop),
+            (4, 1) => (Color::White, Kind::Queen),
+            (5, 1) => (Color::White, Kind::King),
+            (6, 1) => (Color::White, Kind::Bishop),
+            (7, 1) => (Color::White, Kind::Knight),
+            (8, 1) => (Color::White, Kind::Rook),
+            // 2nd rank
+            (1, 2) => (Color::White, Kind::Pawn),
+            (2, 2) => (Color::White, Kind::Pawn),
+            (3, 2) => (Color::White, Kind::Pawn),
+            (4, 2) => (Color::White, Kind::Pawn),
+            (5, 2) => (Color::White, Kind::Pawn),
+            (6, 2) => (Color::White, Kind::Pawn),
+            (7, 2) => (Color::White, Kind::Pawn),
+            (8, 2) => (Color::White, Kind::Pawn),
+            // 7th rank
+            (1, 7) => (Color::Black, Kind::Pawn),
+            (2, 7) => (Color::Black, Kind::Pawn),
+            (3, 7) => (Color::Black, Kind::Pawn),
+            (4, 7) => (Color::Black, Kind::Pawn),
+            (5, 7) => (Color::Black, Kind::Pawn),
+            (6, 7) => (Color::Black, Kind::Pawn),
+            (7, 7) => (Color::Black, Kind::Pawn),
+            (8, 7) => (Color::Black, Kind::Pawn),
+            // 8th rank
+            (1, 8) => (Color::Black, Kind::Rook),
+            (2, 8) => (Color::Black, Kind::Knight),
+            (3, 8) => (Color::Black, Kind::Bishop),
+            (4, 8) => (Color::Black, Kind::Queen),
+            (5, 8) => (Color::Black, Kind::King),
+            (6, 8) => (Color::Black, Kind::Bishop),
+            (7, 8) => (Color::Black, Kind::Knight),
+            (8, 8) => (Color::Black, Kind::Rook),
+        };
+        let active_color = Color::White;
+        let castling_availability = CastlingAvailability::default();
+        let en_passant_target = None;
+
+        Board {
+            squares,
+            active_color,
+            castling_availability,
+            en_passant_target,
+        }
     }
 
     // Initialize a board from Forsyth–Edwards Notation

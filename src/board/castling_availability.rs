@@ -24,6 +24,10 @@ impl CastlingAvailability {
         }
     }
 
+    pub fn default() -> CastlingAvailability {
+        CastlingAvailability::new(true, true, true, true)
+    }
+
     pub fn is_short_castle_available(&self, color: &piece::Color) -> bool {
         match color {
             piece::Color::White => self.white_kingside,
