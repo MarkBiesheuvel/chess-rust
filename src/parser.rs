@@ -60,13 +60,29 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, ParseEr
                 rank -= 1;
             }
             // A number indicates the amount of empty squares, increase file by that number
-            '1'..='8' => {
-                // Parse the character as a digit from 1 to 8
-                let offset = character
-                    .to_digit(10)
-                    .expect("'1'..='8' should always parse to digit successfully") as i8;
-                // Increase file count by offset
-                file += offset;
+            '1' => {
+                file += 1;
+            }
+            '2' => {
+                file += 2;
+            }
+            '3' => {
+                file += 3;
+            }
+            '4' => {
+                file += 4;
+            }
+            '5' => {
+                file += 5;
+            }
+            '6' => {
+                file += 6;
+            }
+            '7' => {
+                file += 7;
+            }
+            '8' => {
+                file += 8;
             }
             // Any character implies a piece on the current square, so  and increase file
             _ => {
@@ -209,9 +225,14 @@ fn parse_en_passant_target_file(character: Option<char>) -> Result<i8, ParseErro
 fn parse_en_passant_target_rank(character: Option<char>) -> Result<i8, ParseError> {
     match character {
         Some(rank) => match rank {
-            '1'..='8' => Ok(rank
-                .to_digit(10)
-                .expect("'1'..='8' should always parse to digit successfully") as i8),
+            '1' => Ok(1),
+            '2' => Ok(2),
+            '3' => Ok(3),
+            '4' => Ok(4),
+            '5' => Ok(5),
+            '6' => Ok(6),
+            '7' => Ok(7),
+            '8' => Ok(8),
             // Any other character is error
             _ => Err(ParseError::InvalidRank(rank)),
         },

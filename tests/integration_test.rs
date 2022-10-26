@@ -86,7 +86,29 @@ fn invalid_castling_availability() {
     };
 }
 
-// TODO: write test for invalid en passant square
+#[test]
+fn invalid_en_passant_target_file() {
+    // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
+    let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq x3 0 1");
+
+    // The record contains an x in the en passant target square field, which is invalid
+    match result {
+        Err(error) => assert_eq!(error, ParseError::InvalidFile('x')),
+        _ => assert!(false),
+    };
+}
+
+#[test]
+fn invalid_en_passant_target_rank() {
+    // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
+    let result = Board::forsyth_edwards_notation("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq b9 0 1");
+
+    // The record contains an x in the en passant target square field, which is invalid
+    match result {
+        Err(error) => assert_eq!(error, ParseError::InvalidRank('9')),
+        _ => assert!(false),
+    };
+}
 
 #[test]
 fn unexpected_end() {

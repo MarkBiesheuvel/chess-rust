@@ -1,6 +1,6 @@
 // Absolute imports within crate
-use crate::parser;
-use crate::piece;
+use crate::parser::{{self, ParseError}};
+use crate::piece::{Piece, Color, Kind};
 // Relative imports of sub modules
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
@@ -27,7 +27,7 @@ enum OccupiedBy {
 #[derive(Debug)]
 pub struct Board {
     squares: Squares,
-    active_color: piece::Color,
+    active_color: Color,
     castling_availability: CastlingAvailability,
     en_passant_target: Option<Square>,
 }
@@ -35,7 +35,7 @@ impl Board {
     // Public initializer
     pub fn new(
         squares: Squares,
-        active_color: piece::Color,
+        active_color: Color,
         castling_availability: CastlingAvailability,
         en_passant_target: Option<Square>,
     ) -> Board {
@@ -53,28 +53,28 @@ impl Board {
     }
 
     // Initialize a board from Forsyth–Edwards Notation
-    pub fn forsyth_edwards_notation(record: &str) -> Result<Board, parser::ParseError> {
+    pub fn forsyth_edwards_notation(record: &str) -> Result<Board, ParseError> {
         parser::parse_forsyth_edwards_notation(record)
     }
 
     // Returns all pieces
-    pub fn pieces(&self) -> Vec<&piece::Piece> {
+    pub fn pieces(&self) -> Vec<&Piece> {
         self.squares.values().collect()
     }
 
     // Returns all white pieces
-    pub fn white_pieces(&self) -> Vec<&piece::Piece> {
+    pub fn white_pieces(&self) -> Vec<&Piece> {
         self.pieces()
             .into_iter()
-            .filter(|piece| piece.color() == &piece::Color::White)
+            .filter(|piece| piece.color() == &Color::White)
             .collect()
     }
 
     // Returns all black pieces
-    pub fn black_pieces(&self) -> Vec<&piece::Piece> {
+    pub fn black_pieces(&self) -> Vec<&Piece> {
         self.pieces()
             .into_iter()
-            .filter(|piece| piece.color() == &piece::Color::Black)
+            .filter(|piece| piece.color() == &Color::Black)
             .collect()
     }
 
@@ -96,8 +96,6 @@ impl Board {
     }
 
     pub fn legal_moves(&self) -> Moves {
-        use piece::Kind;
-
         self.squares
             .iter()
             .filter(|(_, piece)| piece.color() == &self.active_color)
@@ -113,7 +111,7 @@ impl Board {
             .collect()
     }
 
-    fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+    fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut bishop_moves = Moves::new();
 
         let lines: [Vec<Square>; 4] = [
@@ -150,7 +148,7 @@ impl Board {
         bishop_moves
     }
 
-    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut king_moves = Moves::new();
 
         // Regular king moves
@@ -213,7 +211,7 @@ impl Board {
         king_moves
     }
 
-    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut knight_moves = Moves::new();
 
         for destination_square in origin_square.knight_moves() {
@@ -237,9 +235,7 @@ impl Board {
         knight_moves
     }
 
-    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
-        use piece::Color;
-
+    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut pawn_moves = Moves::new();
 
         // List of forward pawn moves, length of just one or two
@@ -289,7 +285,7 @@ impl Board {
         pawn_moves
     }
 
-    fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+    fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut queen_moves = Moves::new();
 
         let lines: [Vec<Square>; 8] = [
@@ -330,7 +326,7 @@ impl Board {
         queen_moves
     }
 
-    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a piece::Piece) -> Moves<'a> {
+    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut rook_moves = Moves::new();
 
         let lines: [Vec<Square>; 4] = [
