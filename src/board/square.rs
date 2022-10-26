@@ -99,7 +99,7 @@ impl Square {
 
     pub fn left_horizontal(&self) -> Vec<Square> {
         (1..)
-            .map(|i| Offset::new(i, 0))
+            .map(|i| Offset::new(-i, 0))
             .take_while(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(&offset))
             .collect()

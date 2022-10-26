@@ -1,7 +1,7 @@
 // External imports
 use std::fmt;
 // Absolute imports within crate
-use crate::board;
+use crate::board::{Board, Square};
 
 const ROW_TOP_BORDER___: &str = "  ┏━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┓\n";
 const ROW_SEPARATOR____: &str = "  ┠───┼───┼───┼───┼───┼───┼───┼───┨\n";
@@ -12,7 +12,7 @@ const COLUMN_SEPARATOR___: &str = " │ ";
 const COLUMN_RIGHT_BORDER: &str = " ┃\n";
 const SQUARE_EMPTY: &str = " ";
 
-impl fmt::Display for board::Board {
+impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Write top border of the board
         write!(f, "{}", ROW_TOP_BORDER___)?;
@@ -23,7 +23,7 @@ impl fmt::Display for board::Board {
             // Iterate over columns (files) in a row (rank)
             for file in 1..=8 {
                 // Write piece if it exists
-                let square = board::Square::new(file, rank);
+                let square = Square::new(file, rank);
                 let square = match self.squares.get(&square) {
                     Some(piece) => piece.symbol(),
                     None => SQUARE_EMPTY,

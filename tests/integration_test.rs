@@ -155,6 +155,13 @@ fn valid_record_end_game() {
             assert_eq!(board.white_pieces().len(), 6);
             // Should have only 11 black pieces left
             assert_eq!(board.black_pieces().len(), 11);
+
+            // (1+1+2) =  4 pawn moves
+            // (3+8)   = 11 bishop moves
+            // (10+14) = 24 rook moves
+            //            6 king moves
+            //     total 45 moves
+            assert_eq!(board.legal_moves().len(), 45);
         }
         _ => assert!(false),
     };

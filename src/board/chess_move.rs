@@ -1,8 +1,8 @@
 // External imports
 use std::fmt;
 // Absolute imports within crate
-use crate::board;
-use crate::piece;
+use crate::board::Square;
+use crate::piece::{Piece, Kind};
 
 #[derive(Debug)]
 pub enum Action {
@@ -17,17 +17,17 @@ pub enum Action {
 // The destination square was just created, so we can take over ownership
 #[derive(Debug)]
 pub struct ChessMove<'a> {
-    piece: &'a piece::Piece,
-    origin_square: &'a board::Square,
+    piece: &'a Piece,
+    origin_square: &'a Square,
     action: Action,
-    destination_square: board::Square,
+    destination_square: Square,
 }
 impl ChessMove<'_> {
     pub fn new<'a>(
-        piece: &'a piece::Piece,
-        origin_square: &'a board::Square,
+        piece: &'a Piece,
+        origin_square: &'a Square,
         action: Action,
-        destination_square: board::Square,
+        destination_square: Square,
     ) -> ChessMove {
         // It wouldn't be much of a move if we stay at the same square
         if *origin_square == destination_square {
@@ -44,9 +44,7 @@ impl ChessMove<'_> {
 }
 impl fmt::Display for ChessMove<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use piece::Kind;
         // Long algebraic notation
-
         match self.action {
             Action::ShortCastle => {
                 // Short castle notation
