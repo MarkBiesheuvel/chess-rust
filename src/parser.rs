@@ -1,5 +1,5 @@
 // Absolute imports within crate
-use crate::board::{Board, CastlingAvailability, Square, Squares};
+use crate::board::{Board, CastlingAvailability, PiecePlacement, Square};
 use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 use field_iterator::FieldIterator;
@@ -13,7 +13,7 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, ParseError>
 
     // Collect all the pieces
     let field = field_iterator.next()?;
-    let squares = parse_piece_placement(field)?;
+    let piece_placement = parse_piece_placement(field)?;
 
     // Detect active color
     let field = field_iterator.next()?;
@@ -31,16 +31,16 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, ParseError>
     // TODO: implement parse function for halfmove clock and fullmove number
 
     Ok(Board::new(
-        squares,
+        piece_placement,
         active_color,
         castling_availability,
         en_passant_target,
     ))
 }
 
-fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, ParseError> {
+fn parse_piece_placement(piece_placement_field: &str) -> Result<PiecePlacement, ParseError> {
     // Start with empty squares
-    let mut squares = Squares::new();
+    let mut piece_placement = PiecePlacement::new();
 
     // Go from highest rank to lowest, and from lowest file to highest
     let mut rank: i8 = 8;
@@ -90,7 +90,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, ParseEr
                 let square = Square::new(file, rank);
                 let piece = parse_piece(character)?;
                 // Place piece on a square
-                squares.insert(square, piece);
+                piece_placement.insert(square, piece);
                 // Increase file count
                 file += 1;
             }
@@ -99,7 +99,7 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<Squares, ParseEr
 
     // Verify whether we have gone through all the squares
     if rank == 1 && file == 9 {
-        Ok(squares)
+        Ok(piece_placement)
     } else {
         Err(ParseError::IncompletePiecePlacement)
     }

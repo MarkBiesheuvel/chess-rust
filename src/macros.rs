@@ -1,10 +1,10 @@
 // Hashmap of squares to pieces
 #[macro_export]
-macro_rules! squares {
+macro_rules! piece_placement {
     { $( ($f: expr, $r: expr) => ($c: expr, $k: expr)),* $(,)?} => {
         {
             // By default a chess board contains 32 pieces
-            let mut map = crate::board::Squares::with_capacity(32);
+            let mut map = crate::board::PiecePlacement::with_capacity(32);
 
             // Add each expression to the map
             $(

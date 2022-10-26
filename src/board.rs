@@ -5,7 +5,7 @@ use crate::piece::{Color, Kind, Piece};
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
 pub use offset::Offset;
-pub use square::{Square, Squares, File, Rank};
+pub use square::{File, PiecePlacement, Rank, Square};
 mod castling_availability;
 mod chess_move;
 mod display;
@@ -22,7 +22,7 @@ enum OccupiedBy {
 // Chess board consisting of 64 squares and indicators for various special moves
 #[derive(Debug)]
 pub struct Board {
-    squares: Squares,
+    piece_placement: PiecePlacement,
     active_color: Color,
     castling_availability: CastlingAvailability,
     en_passant_target: Option<Square>,
@@ -30,13 +30,13 @@ pub struct Board {
 impl Board {
     // Public initializer
     pub fn new(
-        squares: Squares,
+        piece_placement: PiecePlacement,
         active_color: Color,
         castling_availability: CastlingAvailability,
         en_passant_target: Option<Square>,
     ) -> Board {
         Board {
-            squares,
+            piece_placement,
             active_color,
             castling_availability,
             en_passant_target,
@@ -45,7 +45,7 @@ impl Board {
 
     // Initialize a board with the starting position
     pub fn starting_position() -> Board {
-        let squares = squares! {
+        let piece_placement = piece_placement! {
             // 1st rank
             (1, 1) => (Color::White, Kind::Rook),
             (2, 1) => (Color::White, Kind::Knight),
@@ -88,7 +88,7 @@ impl Board {
         let en_passant_target = None;
 
         Board {
-            squares,
+            piece_placement,
             active_color,
             castling_availability,
             en_passant_target,
@@ -102,7 +102,7 @@ impl Board {
 
     // Returns all pieces
     pub fn pieces(&self) -> Vec<&Piece> {
-        self.squares.values().collect()
+        self.piece_placement.values().collect()
     }
 
     // Returns all white pieces
@@ -122,11 +122,11 @@ impl Board {
     }
 
     fn is_empty(&self, square: &Square) -> bool {
-        !self.squares.contains_key(square)
+        !self.piece_placement.contains_key(square)
     }
 
     fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
-        match self.squares.get(square) {
+        match self.piece_placement.get(square) {
             Some(piece) => {
                 if *piece.color() == self.active_color {
                     OccupiedBy::SameColor
@@ -139,7 +139,7 @@ impl Board {
     }
 
     pub fn legal_moves(&self) -> Moves {
-        self.squares
+        self.piece_placement
             .iter()
             .filter(|(_, piece)| piece.color() == &self.active_color)
             .flat_map(|(square, piece)| match piece.kind() {
@@ -281,6 +281,8 @@ impl Board {
     fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut pawn_moves = Moves::new();
 
+        // TODO: use line functions on square and take(1) or take(2)
+
         // List of forward pawn moves, length of just one or two
         let mut line = Vec::new();
         match self.active_color {
@@ -301,7 +303,6 @@ impl Board {
                 }
             }
         };
-
         for destination_square in line {
             match self.is_occupied_by(&destination_square) {
                 OccupiedBy::None => {
@@ -315,12 +316,55 @@ impl Board {
             }
         }
 
-        // TODO: implement diagonal captures
-
-        // TODO: implement en passant
-        match self.en_passant_target {
-            Some(_) => {}
-            None => {}
+        // Right diagonal capture or en passant
+        let mut capture_squares = Vec::new();
+        match self.active_color {
+            Color::White => {
+                // Right diagonal
+                let offset = Offset::new(1, 1);
+                if origin_square.is_valid_offset(&offset) {
+                    capture_squares.push(origin_square.copy_with_offset(&offset));
+                }
+                // Left diagonal
+                let offset = Offset::new(-1, 1);
+                if origin_square.is_valid_offset(&offset) {
+                    capture_squares.push(origin_square.copy_with_offset(&offset));
+                }
+            }
+            Color::Black => {
+                // Right diagonal
+                let offset = Offset::new(1, -1);
+                if origin_square.is_valid_offset(&offset) {
+                    capture_squares.push(origin_square.copy_with_offset(&offset));
+                }
+                // Left diagonal
+                let offset = Offset::new(-1, -1);
+                if origin_square.is_valid_offset(&offset) {
+                    capture_squares.push(origin_square.copy_with_offset(&offset));
+                }
+            }
+        };
+        for destination_square in capture_squares {
+            match self.is_occupied_by(&destination_square) {
+                OccupiedBy::OppositeColor => {
+                    // Diagonal captures
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                    pawn_moves.push(chess_move);
+                }
+                OccupiedBy::None => {
+                    // Check if en passant is available
+                    if let Some(square) = &self.en_passant_target {
+                        // Check if the destination square matches en passant target square
+                        if destination_square == *square {
+                            let chess_move = ChessMove::new(piece, origin_square, Action::EnPassant, destination_square);
+                            pawn_moves.push(chess_move);
+                        }
+                    }
+                }
+                _ => {
+                    // No move possible if occupied by same color
+                }
+            }
         }
 
         // TODO: implement promotion

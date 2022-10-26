@@ -9,8 +9,11 @@ use crate::piece::Piece;
 pub type File = i8;
 pub type Rank = i8;
 
+// Custom type alias for a line of squares
+pub type Line = Vec<Square>;
+
 // Custom type alias for 8×8 board of squares
-pub type Squares = collections::HashMap<Square, Piece>;
+pub type PiecePlacement = collections::HashMap<Square, Piece>;
 
 // All offsets corresponding to knight moves
 const KNIGHT_MOVE_OFFSETS: [Offset; 8] = [
@@ -94,7 +97,7 @@ impl Square {
             .collect()
     }
 
-    fn line(&self, file_direction: File, rank_direction: Rank) -> Vec<Square> {
+    fn line(&self, file_direction: File, rank_direction: Rank) -> Line {
         (1..)
             .map(|i| Offset::new(i * file_direction, i * rank_direction))
             .take_while(|offset| self.is_valid_offset(offset))
@@ -102,35 +105,35 @@ impl Square {
             .collect()
     }
 
-    pub fn top_vertical(&self) -> Vec<Square> {
+    pub fn top_vertical(&self) -> Line {
         self.line(0, 1)
     }
 
-    pub fn down_vertical(&self) -> Vec<Square> {
+    pub fn down_vertical(&self) -> Line {
         self.line(0, -1)
     }
 
-    pub fn right_horizontal(&self) -> Vec<Square> {
+    pub fn right_horizontal(&self) -> Line {
         self.line(1, 0)
     }
 
-    pub fn left_horizontal(&self) -> Vec<Square> {
+    pub fn left_horizontal(&self) -> Line {
         self.line(-1, 0)
     }
 
-    pub fn top_right_diagonal(&self) -> Vec<Square> {
+    pub fn top_right_diagonal(&self) -> Line {
         self.line(1, 1)
     }
 
-    pub fn top_left_diagonal(&self) -> Vec<Square> {
+    pub fn top_left_diagonal(&self) -> Line {
         self.line(-1, 1)
     }
 
-    pub fn bottom_right_diagonal(&self) -> Vec<Square> {
+    pub fn bottom_right_diagonal(&self) -> Line {
         self.line(1, -1)
     }
 
-    pub fn bottom_left_diagonal(&self) -> Vec<Square> {
+    pub fn bottom_left_diagonal(&self) -> Line {
         self.line(-1, -1)
     }
 }

@@ -8,6 +8,7 @@ use crate::piece::{Kind, Piece};
 pub enum Action {
     Move,
     Capture,
+    EnPassant,
     // TODO: add MovePromotion and CapturePromotion
     ShortCastle,
     LongCastle,
@@ -83,7 +84,7 @@ impl fmt::Display for ChessMove<'_> {
 
                 // Captures
                 match self.action {
-                    Action::Capture => {
+                    Action::Capture | Action::EnPassant => {
                         write!(f, "x")?;
                     }
                     _ => {}
@@ -92,6 +93,14 @@ impl fmt::Display for ChessMove<'_> {
                 // Destination square
                 write!(f, "{}", self.destination_square)?;
             }
+        }
+
+        // Extra notation for en passant (optional)
+        match self.action {
+            Action::EnPassant => {
+                write!(f, " e.p.")?;
+            }
+            _ => {}
         }
 
         // TODO: add check(mate)
