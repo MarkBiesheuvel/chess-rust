@@ -17,11 +17,3 @@ macro_rules! squares {
         }
     };
 }
-
-// Iterator that returns a line of squares in a particular direction (x, y)
-#[macro_export]
-macro_rules! line {
-    ( $x:expr, $y:expr ) => {
-        (1..).map(|i| crate::board::Offset::new(i * $x, i * $y))
-    };
-}

@@ -1,20 +1,23 @@
+// Absolute imports within crate
+use crate::board::{File, Rank};
+
 // Offset on the chess board
 #[derive(Debug)]
 pub struct Offset {
-    file: i8,
-    rank: i8,
+    file: File,
+    rank: Rank,
 }
 
 impl Offset {
-    pub const fn new(file: i8, rank: i8) -> Offset {
+    pub const fn new(file: File, rank: Rank) -> Offset {
         Offset { file, rank }
     }
 
-    pub fn file(&self) -> i8 {
+    pub fn file(&self) -> File {
         self.file
     }
 
-    pub fn rank(&self) -> i8 {
+    pub fn rank(&self) -> Rank {
         self.rank
     }
 }

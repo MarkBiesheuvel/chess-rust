@@ -5,6 +5,13 @@ use std::fmt;
 use crate::board::Offset;
 use crate::piece::Piece;
 
+// Custom type alias for file and rank
+pub type File = i8;
+pub type Rank = i8;
+
+// Custom type alias for 8×8 board of squares
+pub type Squares = collections::HashMap<Square, Piece>;
+
 // All offsets corresponding to knight moves
 const KNIGHT_MOVE_OFFSETS: [Offset; 8] = [
     Offset::new(2, 1),
@@ -32,19 +39,19 @@ const KING_MOVE_OFFSETS: [Offset; 8] = [
 // Type for squares of the chess board
 #[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Square {
-    file: i8, // TODO: create type alias
-    rank: i8, // TODO: create type alias
+    file: File,
+    rank: Rank,
 }
 impl Square {
-    fn is_valid_file(file: i8) -> bool {
+    fn is_valid_file(file: File) -> bool {
         1 <= file && file <= 8
     }
 
-    fn is_valid_rank(rank: i8) -> bool {
+    fn is_valid_rank(rank: Rank) -> bool {
         1 <= rank && rank <= 8
     }
 
-    pub fn new(file: i8, rank: i8) -> Square {
+    pub fn new(file: File, rank: Rank) -> Square {
         if !Square::is_valid_file(file) {
             panic!("file needs to be between 1 and 8");
         }
@@ -55,11 +62,11 @@ impl Square {
         Square { file, rank }
     }
 
-    pub fn file(&self) -> i8 {
+    pub fn file(&self) -> File {
         self.file
     }
 
-    pub fn rank(&self) -> i8 {
+    pub fn rank(&self) -> Rank {
         self.rank
     }
 
@@ -69,62 +76,6 @@ impl Square {
 
     pub fn copy_with_offset(&self, offset: &Offset) -> Square {
         Square::new(self.file() + offset.file(), self.rank() + offset.rank())
-    }
-
-    pub fn top_vertical(&self) -> Vec<Square> {
-        line!(0, 1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn down_vertical(&self) -> Vec<Square> {
-        line!(0, -1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn right_horizontal(&self) -> Vec<Square> {
-        line!(1, 0)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn left_horizontal(&self) -> Vec<Square> {
-        line!(-1, 0)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn top_right_diagonal(&self) -> Vec<Square> {
-        line!(1, 1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn top_left_diagonal(&self) -> Vec<Square> {
-        line!(-1, 1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn bottom_right_diagonal(&self) -> Vec<Square> {
-        line!(1, -1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
-    }
-
-    pub fn bottom_left_diagonal(&self) -> Vec<Square> {
-        line!(-1, -1)
-            .take_while(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(&offset))
-            .collect()
     }
 
     pub fn knight_moves(&self) -> Vec<Square> {
@@ -141,6 +92,46 @@ impl Square {
             .filter(|offset| self.is_valid_offset(offset))
             .map(|offset| self.copy_with_offset(offset))
             .collect()
+    }
+
+    fn line(&self, file_direction: File, rank_direction: Rank) -> Vec<Square> {
+        (1..)
+            .map(|i| Offset::new(i * file_direction, i * rank_direction))
+            .take_while(|offset| self.is_valid_offset(offset))
+            .map(|offset| self.copy_with_offset(&offset))
+            .collect()
+    }
+
+    pub fn top_vertical(&self) -> Vec<Square> {
+        self.line(0, 1)
+    }
+
+    pub fn down_vertical(&self) -> Vec<Square> {
+        self.line(0, -1)
+    }
+
+    pub fn right_horizontal(&self) -> Vec<Square> {
+        self.line(1, 0)
+    }
+
+    pub fn left_horizontal(&self) -> Vec<Square> {
+        self.line(-1, 0)
+    }
+
+    pub fn top_right_diagonal(&self) -> Vec<Square> {
+        self.line(1, 1)
+    }
+
+    pub fn top_left_diagonal(&self) -> Vec<Square> {
+        self.line(-1, 1)
+    }
+
+    pub fn bottom_right_diagonal(&self) -> Vec<Square> {
+        self.line(1, -1)
+    }
+
+    pub fn bottom_left_diagonal(&self) -> Vec<Square> {
+        self.line(-1, -1)
     }
 }
 impl fmt::Display for Square {
@@ -174,6 +165,3 @@ impl fmt::Display for Square {
         write!(f, "{}{}", file, rank)
     }
 }
-
-// Custom type alias for 8×8 board of squares
-pub type Squares = collections::HashMap<Square, Piece>;

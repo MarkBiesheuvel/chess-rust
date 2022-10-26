@@ -5,7 +5,7 @@ use crate::piece::{Color, Kind, Piece};
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
 pub use offset::Offset;
-pub use square::{Square, Squares};
+pub use square::{Square, Squares, File, Rank};
 mod castling_availability;
 mod chess_move;
 mod display;
