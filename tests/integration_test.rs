@@ -1,4 +1,4 @@
-use chess::board::Board;
+use chess::board::{Action, Board, ChessMove};
 use chess::parser::ParseError;
 use chess::piece::Kind;
 
@@ -157,11 +157,48 @@ fn valid_record_end_game() {
             assert_eq!(board.black_pieces().len(), 11);
 
             // (1+1+2) =  4 pawn moves
-            // (3+8)   = 11 bishop moves
+            //   (3+8) = 11 bishop moves
             // (10+14) = 24 rook moves
-            //            6 king moves
+            //     (6) =  6 king moves
             //     total 45 moves
             assert_eq!(board.legal_moves().len(), 45);
+        }
+        _ => assert!(false),
+    };
+}
+
+#[test]
+fn special_moves_allowed() {
+    // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
+    let result = Board::forsyth_edwards_notation("rnbqkbnr/pp2p1pp/8/1p1pPp2/8/5N2/PPPP1PPP/RNBQK2R w KQkq f6 0 5");
+
+    // This is a valid record
+    match result {
+        Ok(board) => {
+            // (2+2+2+2+2+0+2+2) =  14 pawn moves (one of which is en passant)
+            //               (0) =  0 bishop moves
+            //             (0+2) =   2 rook moves
+            //               (3) =   3 king moves (one of which is short castle)
+            //               (1) =   1 queen move
+            //             (2+4) =   6 knight moves
+            //                total 26 moves
+            assert_eq!(board.legal_moves().len(), 26);
+
+            // One of the moves is en passant
+            let en_passant_moves: Vec<ChessMove> = board
+                .legal_moves()
+                .into_iter()
+                .filter(|chess_move| *chess_move.action() == Action::EnPassant)
+                .collect();
+            assert_eq!(en_passant_moves.len(), 1);
+
+            // One of the moves is short castle
+            let short_castle_moves: Vec<ChessMove> = board
+                .legal_moves()
+                .into_iter()
+                .filter(|chess_move| *chess_move.action() == Action::ShortCastle)
+                .collect();
+            assert_eq!(short_castle_moves.len(), 1);
         }
         _ => assert!(false),
     };

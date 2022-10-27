@@ -105,7 +105,7 @@ impl Square {
             .collect()
     }
 
-    pub fn top_vertical(&self) -> Line {
+    pub fn up_vertical(&self) -> Line {
         self.line(0, 1)
     }
 

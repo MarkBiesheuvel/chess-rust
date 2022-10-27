@@ -5,7 +5,7 @@ use crate::piece::{Color, Kind, Piece};
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove, Moves};
 pub use offset::Offset;
-pub use square::{File, PiecePlacement, Rank, Square};
+pub use square::{File, Line, PiecePlacement, Rank, Square};
 mod castling_availability;
 mod chess_move;
 mod display;
@@ -222,7 +222,7 @@ impl Board {
                 .take(2)
                 .all(|square| self.is_empty(square));
 
-            // TODO: verify in-between sqaures are not in check
+            // TODO: verify in-between squares are not in check
 
             // Can short castle
             if in_between_square_are_empty {
@@ -241,7 +241,7 @@ impl Board {
                 .take(3)
                 .all(|square| self.is_empty(square));
 
-            // TODO: verify in-between sqaures are not in check
+            // TODO: verify in-between squares are not in check
 
             // Can short castle
             if in_between_square_are_empty {
@@ -281,28 +281,23 @@ impl Board {
     fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
         let mut pawn_moves = Moves::new();
 
-        // TODO: use line functions on square and take(1) or take(2)
-
-        // List of forward pawn moves, length of just one or two
-        let mut line = Vec::new();
-        match self.active_color {
-            Color::White => {
-                // One square forward
-                line.push(origin_square.copy_with_offset(&Offset::new(0, 1)));
-                // Two squares forward
-                if origin_square.rank() == 2 {
-                    line.push(origin_square.copy_with_offset(&Offset::new(0, 2)));
-                }
-            }
-            Color::Black => {
-                // One square forward
-                line.push(origin_square.copy_with_offset(&Offset::new(0, -1)));
-                // Two squares forward
-                if origin_square.rank() == 7 {
-                    line.push(origin_square.copy_with_offset(&Offset::new(0, -2)));
-                }
-            }
+        // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
+        let number_of_steps = if origin_square.rank() == self.active_color.get_pawn_starting_rank() {
+            2
+        } else {
+            1
         };
+
+        // Get the vertical line for a specific number of steps
+        let line: Line = match self.active_color {
+            Color::White => origin_square.up_vertical(),
+            Color::Black => origin_square.down_vertical(),
+        };
+
+        // Limit the amount of squares in the line
+        let line: Line = line.into_iter().take(number_of_steps).collect();
+
+        // Filter our any squares that are blocked
         for destination_square in line {
             match self.is_occupied_by(&destination_square) {
                 OccupiedBy::None => {
@@ -317,52 +312,40 @@ impl Board {
         }
 
         // Right diagonal capture or en passant
-        let mut capture_squares = Vec::new();
+        let mut diagonals: Vec<Line> = Vec::new();
+
         match self.active_color {
             Color::White => {
-                // Right diagonal
-                let offset = Offset::new(1, 1);
-                if origin_square.is_valid_offset(&offset) {
-                    capture_squares.push(origin_square.copy_with_offset(&offset));
-                }
-                // Left diagonal
-                let offset = Offset::new(-1, 1);
-                if origin_square.is_valid_offset(&offset) {
-                    capture_squares.push(origin_square.copy_with_offset(&offset));
-                }
+                diagonals.push(origin_square.top_left_diagonal().into_iter().take(1).collect());
+                diagonals.push(origin_square.top_right_diagonal().into_iter().take(1).collect());
             }
             Color::Black => {
-                // Right diagonal
-                let offset = Offset::new(1, -1);
-                if origin_square.is_valid_offset(&offset) {
-                    capture_squares.push(origin_square.copy_with_offset(&offset));
-                }
-                // Left diagonal
-                let offset = Offset::new(-1, -1);
-                if origin_square.is_valid_offset(&offset) {
-                    capture_squares.push(origin_square.copy_with_offset(&offset));
-                }
+                diagonals.push(origin_square.bottom_left_diagonal().into_iter().take(1).collect());
+                diagonals.push(origin_square.bottom_right_diagonal().into_iter().take(1).collect());
             }
         };
-        for destination_square in capture_squares {
-            match self.is_occupied_by(&destination_square) {
-                OccupiedBy::OppositeColor => {
-                    // Diagonal captures
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                    pawn_moves.push(chess_move);
-                }
-                OccupiedBy::None => {
-                    // Check if en passant is available
-                    if let Some(square) = &self.en_passant_target {
-                        // Check if the destination square matches en passant target square
-                        if destination_square == *square {
-                            let chess_move = ChessMove::new(piece, origin_square, Action::EnPassant, destination_square);
-                            pawn_moves.push(chess_move);
+        for diagonal in diagonals {
+            for destination_square in diagonal {
+                match self.is_occupied_by(&destination_square) {
+                    OccupiedBy::OppositeColor => {
+                        // Diagonal captures
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                        pawn_moves.push(chess_move);
+                    }
+                    OccupiedBy::None => {
+                        // Check if en passant is available
+                        if let Some(square) = &self.en_passant_target {
+                            // Check if the destination square matches en passant target square
+                            if destination_square == *square {
+                                let chess_move =
+                                    ChessMove::new(piece, origin_square, Action::EnPassant, destination_square);
+                                pawn_moves.push(chess_move);
+                            }
                         }
                     }
-                }
-                _ => {
-                    // No move possible if occupied by same color
+                    OccupiedBy::SameColor => {
+                        // No move possible if occupied by same color
+                    }
                 }
             }
         }
@@ -376,7 +359,7 @@ impl Board {
         let mut queen_moves = Moves::new();
 
         let lines: [Vec<Square>; 8] = [
-            origin_square.top_vertical(),
+            origin_square.up_vertical(),
             origin_square.down_vertical(),
             origin_square.left_horizontal(),
             origin_square.right_horizontal(),
@@ -417,7 +400,7 @@ impl Board {
         let mut rook_moves = Moves::new();
 
         let lines: [Vec<Square>; 4] = [
-            origin_square.top_vertical(),
+            origin_square.up_vertical(),
             origin_square.down_vertical(),
             origin_square.left_horizontal(),
             origin_square.right_horizontal(),

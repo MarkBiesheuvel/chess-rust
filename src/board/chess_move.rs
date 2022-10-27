@@ -4,7 +4,7 @@ use std::fmt;
 use crate::board::Square;
 use crate::piece::{Kind, Piece};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
     Move,
     Capture,
@@ -41,6 +41,10 @@ impl ChessMove<'_> {
             action,
             destination_square,
         }
+    }
+
+    pub fn action(&self) -> &Action {
+        &self.action
     }
 }
 impl fmt::Display for ChessMove<'_> {
