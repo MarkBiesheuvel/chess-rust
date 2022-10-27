@@ -1,5 +1,5 @@
-// Absolute imports within crate
-use crate::board::{File, Rank};
+// Imports from parent
+use super::{File, Rank};
 
 // Offset on the chess board
 #[derive(Debug)]

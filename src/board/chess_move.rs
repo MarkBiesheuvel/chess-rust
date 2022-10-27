@@ -114,6 +114,3 @@ impl fmt::Display for ChessMove<'_> {
         Ok(())
     }
 }
-
-// Custom type alias for vector of moves
-pub type Moves<'a> = Vec<ChessMove<'a>>;

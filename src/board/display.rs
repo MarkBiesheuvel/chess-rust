@@ -1,7 +1,7 @@
 // External imports
 use std::fmt;
-// Absolute imports within crate
-use crate::board::{Board, Square};
+// Imports from parent
+use super::{Board, Square};
 
 const ROW_TOP_BORDER___: &str = "  ┏━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┓\n";
 const ROW_SEPARATOR____: &str = "  ┠───┼───┼───┼───┼───┼───┼───┼───┨\n";

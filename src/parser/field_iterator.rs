@@ -1,7 +1,7 @@
 // External imports
 use std::str;
-// Absolute imports within crate
-use crate::parser::ParseError;
+// Imports from parent
+use super::ParseError;
 
 // Wrapper for whitespace iterator that returns Results instead of Options
 pub struct FieldIterator<'a> {

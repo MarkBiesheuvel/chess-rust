@@ -1,19 +1,7 @@
 // External imports
-use std::collections;
 use std::fmt;
-// Absolute imports within crate
-use crate::board::Offset;
-use crate::piece::Piece;
-
-// Custom type alias for file and rank
-pub type File = i8;
-pub type Rank = i8;
-
-// Custom type alias for a line of squares
-pub type Line = Vec<Square>;
-
-// Custom type alias for 8×8 board of squares
-pub type PiecePlacement = collections::HashMap<Square, Piece>;
+// Imports from parent
+use super::{File, Offset, Rank, SquareList};
 
 // All offsets corresponding to knight moves
 const KNIGHT_MOVE_OFFSETS: [Offset; 8] = [
@@ -81,23 +69,19 @@ impl Square {
         Square::new(self.file() + offset.file(), self.rank() + offset.rank())
     }
 
-    pub fn knight_moves(&self) -> Vec<Square> {
-        KNIGHT_MOVE_OFFSETS
-            .iter()
-            .filter(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(offset))
+    // Represents a group of square created from a list of offsets
+    fn create_group_of_squares(&self, offsets: &[Offset]) -> SquareList {
+        // Iterate through the list and keep all squares that are valid (within the 8×8 board)
+        offsets
+            .into_iter()
+            .filter(|offset| self.is_valid_offset(&offset))
+            .map(|offset| self.copy_with_offset(&offset))
             .collect()
     }
 
-    pub fn king_moves(&self) -> Vec<Square> {
-        KING_MOVE_OFFSETS
-            .iter()
-            .filter(|offset| self.is_valid_offset(offset))
-            .map(|offset| self.copy_with_offset(offset))
-            .collect()
-    }
-
-    fn line(&self, file_direction: File, rank_direction: Rank) -> Line {
+    // Represents a line of sight into a particular direction
+    fn create_line_of_squares(&self, file_direction: File, rank_direction: Rank) -> SquareList {
+        // Iterate into the given direction and stop as soon as it reached the end of the 8×8 board
         (1..)
             .map(|i| Offset::new(i * file_direction, i * rank_direction))
             .take_while(|offset| self.is_valid_offset(offset))
@@ -105,36 +89,44 @@ impl Square {
             .collect()
     }
 
-    pub fn up_vertical(&self) -> Line {
-        self.line(0, 1)
+    pub fn squares_on_knight_moves(&self) -> SquareList {
+        self.create_group_of_squares(&KNIGHT_MOVE_OFFSETS)
     }
 
-    pub fn down_vertical(&self) -> Line {
-        self.line(0, -1)
+    pub fn squares_on_king_move(&self) -> SquareList {
+        self.create_group_of_squares(&KING_MOVE_OFFSETS)
     }
 
-    pub fn right_horizontal(&self) -> Line {
-        self.line(1, 0)
+    pub fn squares_on_up_vertical(&self) -> SquareList {
+        self.create_line_of_squares(0, 1)
     }
 
-    pub fn left_horizontal(&self) -> Line {
-        self.line(-1, 0)
+    pub fn squares_on_down_vertical(&self) -> SquareList {
+        self.create_line_of_squares(0, -1)
     }
 
-    pub fn top_right_diagonal(&self) -> Line {
-        self.line(1, 1)
+    pub fn squares_on_right_horizontal(&self) -> SquareList {
+        self.create_line_of_squares(1, 0)
     }
 
-    pub fn top_left_diagonal(&self) -> Line {
-        self.line(-1, 1)
+    pub fn squares_on_left_horizontal(&self) -> SquareList {
+        self.create_line_of_squares(-1, 0)
     }
 
-    pub fn bottom_right_diagonal(&self) -> Line {
-        self.line(1, -1)
+    pub fn squares_on_top_right_diagonal(&self) -> SquareList {
+        self.create_line_of_squares(1, 1)
     }
 
-    pub fn bottom_left_diagonal(&self) -> Line {
-        self.line(-1, -1)
+    pub fn squares_on_top_left_diagonal(&self) -> SquareList {
+        self.create_line_of_squares(-1, 1)
+    }
+
+    pub fn squares_on_bottom_right_diagonal(&self) -> SquareList {
+        self.create_line_of_squares(1, -1)
+    }
+
+    pub fn squares_on_bottom_left_diagonal(&self) -> SquareList {
+        self.create_line_of_squares(-1, -1)
     }
 }
 impl fmt::Display for Square {

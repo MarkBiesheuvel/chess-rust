@@ -3,14 +3,16 @@ use crate::parser::{self, ParseError};
 use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 pub use castling_availability::CastlingAvailability;
-pub use chess_move::{Action, ChessMove, Moves};
+pub use chess_move::{Action, ChessMove};
 pub use offset::Offset;
-pub use square::{File, Line, PiecePlacement, Rank, Square};
+pub use square::Square;
+pub use types::{File, MoveList, PiecePlacement, Rank, SquareList};
 mod castling_availability;
 mod chess_move;
 mod display;
 mod offset;
 mod square;
+mod types;
 
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
 enum OccupiedBy {
@@ -138,7 +140,7 @@ impl Board {
         }
     }
 
-    pub fn legal_moves(&self) -> Moves {
+    pub fn legal_moves(&self) -> MoveList {
         self.piece_placement
             .iter()
             .filter(|(_, piece)| piece.color() == &self.active_color)
@@ -154,79 +156,40 @@ impl Board {
             .collect()
     }
 
-    fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut bishop_moves = Moves::new();
-
-        let lines: [Vec<Square>; 4] = [
-            origin_square.top_right_diagonal(),
-            origin_square.top_left_diagonal(),
-            origin_square.bottom_right_diagonal(),
-            origin_square.bottom_left_diagonal(),
+    fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        // Bishop moves into 4 different directions (4 diagonal)
+        let lines: Vec<SquareList> = vec![
+            origin_square.squares_on_top_right_diagonal(),
+            origin_square.squares_on_top_left_diagonal(),
+            origin_square.squares_on_bottom_right_diagonal(),
+            origin_square.squares_on_bottom_left_diagonal(),
         ];
 
-        for line in lines {
-            for destination_square in line {
-                match self.is_occupied_by(&destination_square) {
-                    OccupiedBy::SameColor => {
-                        // Cannot take or move through own piece
-                        break;
-                    }
-                    OccupiedBy::OppositeColor => {
-                        // Can capture opposite color
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        bishop_moves.push(chess_move);
-
-                        // But cannot move any further
-                        break;
-                    }
-                    OccupiedBy::None => {
-                        // Can move to empty square and keep moving
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        bishop_moves.push(chess_move);
-                    }
-                };
-            }
-        }
-
-        bishop_moves
+        // Return result
+        self.legal_moves_for_lines(origin_square, piece, lines)
     }
 
-    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut king_moves = Moves::new();
+    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        let mut king_moves = MoveList::new();
 
         // Regular king moves
-        for destination_square in origin_square.king_moves() {
-            match self.is_occupied_by(&destination_square) {
-                OccupiedBy::SameColor => {
-                    // Cannot take piece
-                }
-                OccupiedBy::OppositeColor => {
-                    // Can capture opposite color
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                    king_moves.push(chess_move);
-                }
-                OccupiedBy::None => {
-                    // Can move to empty square
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                    king_moves.push(chess_move);
-                }
-            };
-        }
+        let group: SquareList = origin_square.squares_on_king_move();
+        king_moves.append(&mut self.legal_moves_for_group(origin_square, piece, group));
 
         // Short castling
         if self.castling_availability.is_short_castle_available(&self.active_color) {
             // Check whether the two square right of the king are empty
             let in_between_square_are_empty = origin_square
-                .right_horizontal()
-                .iter()
+                .squares_on_right_horizontal()
+                .into_iter()
                 .take(2)
-                .all(|square| self.is_empty(square));
+                .all(|square| self.is_empty(&square));
 
             // TODO: verify in-between squares are not in check
 
             // Can short castle
             if in_between_square_are_empty {
-                let destination_square = Square::new(7, 1);
+                let destination_square = Square::new(7, origin_square.rank());
                 let chess_move = ChessMove::new(piece, origin_square, Action::ShortCastle, destination_square);
                 king_moves.push(chess_move);
             }
@@ -236,16 +199,16 @@ impl Board {
         if self.castling_availability.is_long_castle_available(&self.active_color) {
             // Check whether the three square left of the king are empty
             let in_between_square_are_empty = origin_square
-                .left_horizontal()
-                .iter()
+                .squares_on_left_horizontal()
+                .into_iter()
                 .take(3)
-                .all(|square| self.is_empty(square));
+                .all(|square| self.is_empty(&square));
 
             // TODO: verify in-between squares are not in check
 
-            // Can short castle
+            // Can long castle
             if in_between_square_are_empty {
-                let destination_square = Square::new(3, 1);
+                let destination_square = Square::new(3, origin_square.rank());
                 let chess_move = ChessMove::new(piece, origin_square, Action::LongCastle, destination_square);
                 king_moves.push(chess_move);
             }
@@ -254,32 +217,13 @@ impl Board {
         king_moves
     }
 
-    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut knight_moves = Moves::new();
-
-        for destination_square in origin_square.knight_moves() {
-            match self.is_occupied_by(&destination_square) {
-                OccupiedBy::SameColor => {
-                    // Cannot take piece
-                }
-                OccupiedBy::OppositeColor => {
-                    // Can capture opposite color
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                    knight_moves.push(chess_move);
-                }
-                OccupiedBy::None => {
-                    // Can move to empty square
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                    knight_moves.push(chess_move);
-                }
-            };
-        }
-
-        knight_moves
+    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        let group: SquareList = origin_square.squares_on_knight_moves();
+        self.legal_moves_for_group(origin_square, piece, group)
     }
 
-    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut pawn_moves = Moves::new();
+    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        let mut pawn_moves = MoveList::new();
 
         // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
         let number_of_steps = if origin_square.rank() == self.active_color.get_pawn_starting_rank() {
@@ -289,16 +233,13 @@ impl Board {
         };
 
         // Get the vertical line for a specific number of steps
-        let line: Line = match self.active_color {
-            Color::White => origin_square.up_vertical(),
-            Color::Black => origin_square.down_vertical(),
+        let line: SquareList = match self.active_color {
+            Color::White => origin_square.squares_on_up_vertical(),
+            Color::Black => origin_square.squares_on_down_vertical(),
         };
 
-        // Limit the amount of squares in the line
-        let line: Line = line.into_iter().take(number_of_steps).collect();
-
         // Filter our any squares that are blocked
-        for destination_square in line {
+        for destination_square in line.into_iter().take(number_of_steps) {
             match self.is_occupied_by(&destination_square) {
                 OccupiedBy::None => {
                     let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
@@ -312,29 +253,29 @@ impl Board {
         }
 
         // Right diagonal capture or en passant
-        let mut diagonals: Vec<Line> = Vec::new();
-
-        match self.active_color {
-            Color::White => {
-                diagonals.push(origin_square.top_left_diagonal().into_iter().take(1).collect());
-                diagonals.push(origin_square.top_right_diagonal().into_iter().take(1).collect());
-            }
-            Color::Black => {
-                diagonals.push(origin_square.bottom_left_diagonal().into_iter().take(1).collect());
-                diagonals.push(origin_square.bottom_right_diagonal().into_iter().take(1).collect());
-            }
+        let diagonals: [SquareList; 2] = match self.active_color {
+            Color::White => [
+                origin_square.squares_on_top_left_diagonal(),
+                origin_square.squares_on_top_right_diagonal(),
+            ],
+            Color::Black => [
+                origin_square.squares_on_bottom_left_diagonal(),
+                origin_square.squares_on_bottom_right_diagonal(),
+            ],
         };
+
         for diagonal in diagonals {
-            for destination_square in diagonal {
+            // Only go one square into the diagonal direction
+            // NOTE: the diagonal might be empty if the piece is at the edge of the board
+            for destination_square in diagonal.into_iter().take(1) {
                 match self.is_occupied_by(&destination_square) {
                     OccupiedBy::OppositeColor => {
                         // Diagonal captures
                         let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
                         pawn_moves.push(chess_move);
                     }
-                    OccupiedBy::None => {
-                        // Check if en passant is available
-                        if let Some(square) = &self.en_passant_target {
+                    OccupiedBy::None => match &self.en_passant_target {
+                        Some(square) => {
                             // Check if the destination square matches en passant target square
                             if destination_square == *square {
                                 let chess_move =
@@ -342,7 +283,10 @@ impl Board {
                                 pawn_moves.push(chess_move);
                             }
                         }
-                    }
+                        None => {
+                            // No en passant possible
+                        }
+                    },
                     OccupiedBy::SameColor => {
                         // No move possible if occupied by same color
                     }
@@ -355,59 +299,47 @@ impl Board {
         pawn_moves
     }
 
-    fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut queen_moves = Moves::new();
-
-        let lines: [Vec<Square>; 8] = [
-            origin_square.up_vertical(),
-            origin_square.down_vertical(),
-            origin_square.left_horizontal(),
-            origin_square.right_horizontal(),
-            origin_square.top_right_diagonal(),
-            origin_square.top_left_diagonal(),
-            origin_square.bottom_right_diagonal(),
-            origin_square.bottom_left_diagonal(),
+    fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        // Queen moves into 8 different directions (2 vertical, 2 horizontal, and 4 diagonal)
+        let lines: Vec<SquareList> = vec![
+            origin_square.squares_on_up_vertical(),
+            origin_square.squares_on_down_vertical(),
+            origin_square.squares_on_left_horizontal(),
+            origin_square.squares_on_right_horizontal(),
+            origin_square.squares_on_top_right_diagonal(),
+            origin_square.squares_on_top_left_diagonal(),
+            origin_square.squares_on_bottom_right_diagonal(),
+            origin_square.squares_on_bottom_left_diagonal(),
         ];
 
-        for line in lines {
-            for destination_square in line {
-                match self.is_occupied_by(&destination_square) {
-                    OccupiedBy::SameColor => {
-                        // Cannot take or move through own piece
-                        break;
-                    }
-                    OccupiedBy::OppositeColor => {
-                        // Can capture opposite color
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        queen_moves.push(chess_move);
-
-                        // But cannot move any further
-                        break;
-                    }
-                    OccupiedBy::None => {
-                        // Can move to empty square and keep moving
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        queen_moves.push(chess_move);
-                    }
-                };
-            }
-        }
-
-        queen_moves
+        // Return result
+        self.legal_moves_for_lines(origin_square, piece, lines)
     }
 
-    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> Moves<'a> {
-        let mut rook_moves = Moves::new();
-
-        let lines: [Vec<Square>; 4] = [
-            origin_square.up_vertical(),
-            origin_square.down_vertical(),
-            origin_square.left_horizontal(),
-            origin_square.right_horizontal(),
+    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+        // Rook moves into 4 different directions(2 vertical and 2 horizontal)
+        let lines: Vec<SquareList> = vec![
+            origin_square.squares_on_up_vertical(),
+            origin_square.squares_on_down_vertical(),
+            origin_square.squares_on_right_horizontal(),
+            origin_square.squares_on_left_horizontal(),
         ];
 
+        // Return result
+        self.legal_moves_for_lines(origin_square, piece, lines)
+    }
+
+    fn legal_moves_for_lines<'a>(
+        &self,
+        origin_square: &'a Square,
+        piece: &'a Piece,
+        lines: Vec<SquareList>,
+    ) -> MoveList<'a> {
+        let mut moves = Vec::new();
+
+        // Add legal moves for each of those direction
         for line in lines {
-            for destination_square in line {
+            for destination_square in line.into_iter() {
                 match self.is_occupied_by(&destination_square) {
                     OccupiedBy::SameColor => {
                         // Cannot take or move through own piece
@@ -416,7 +348,7 @@ impl Board {
                     OccupiedBy::OppositeColor => {
                         // Can capture opposite color
                         let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        rook_moves.push(chess_move);
+                        moves.push(chess_move);
 
                         // But cannot move any further
                         break;
@@ -424,12 +356,41 @@ impl Board {
                     OccupiedBy::None => {
                         // Can move to empty square and keep moving
                         let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        rook_moves.push(chess_move);
+                        moves.push(chess_move);
                     }
                 };
             }
         }
 
-        rook_moves
+        moves
+    }
+
+    fn legal_moves_for_group<'a>(
+        &self,
+        origin_square: &'a Square,
+        piece: &'a Piece,
+        group: SquareList,
+    ) -> MoveList<'a> {
+        let mut moves = Vec::new();
+
+        for destination_square in group.into_iter() {
+            match self.is_occupied_by(&destination_square) {
+                OccupiedBy::SameColor => {
+                    // Cannot take piece of same color
+                }
+                OccupiedBy::OppositeColor => {
+                    // Can capture opposite color
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                    moves.push(chess_move);
+                }
+                OccupiedBy::None => {
+                    // Can move to empty square
+                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                    moves.push(chess_move);
+                }
+            };
+        }
+
+        moves
     }
 }
