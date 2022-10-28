@@ -170,11 +170,11 @@ impl Board {
     }
 
     fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
-        let mut king_moves = MoveList::new();
+        let mut moves = MoveList::new();
 
         // Regular king moves
         let group: SquareList = origin_square.squares_on_king_move();
-        king_moves.append(&mut self.legal_moves_for_group(origin_square, piece, group));
+        moves.append(&mut self.legal_moves_for_group(origin_square, piece, group));
 
         // Short castling
         if self.castling_availability.is_short_castle_available(&self.active_color) {
@@ -190,8 +190,9 @@ impl Board {
             // Can short castle
             if in_between_square_are_empty {
                 let destination_square = Square::new(7, origin_square.rank());
-                let chess_move = ChessMove::new(piece, origin_square, Action::ShortCastle, destination_square);
-                king_moves.push(chess_move);
+                add_move! {
+                    moves <- (piece, origin_square, Action::ShortCastle, destination_square)
+                }
             }
         }
 
@@ -209,12 +210,13 @@ impl Board {
             // Can long castle
             if in_between_square_are_empty {
                 let destination_square = Square::new(3, origin_square.rank());
-                let chess_move = ChessMove::new(piece, origin_square, Action::LongCastle, destination_square);
-                king_moves.push(chess_move);
+                add_move! {
+                    moves <- (piece, origin_square, Action::LongCastle, destination_square)
+                }
             }
         }
 
-        king_moves
+        moves
     }
 
     fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
@@ -223,7 +225,7 @@ impl Board {
     }
 
     fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
-        let mut pawn_moves = MoveList::new();
+        let mut moves = MoveList::new();
 
         // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
         let number_of_steps = if origin_square.rank() == self.active_color.get_pawn_starting_rank() {
@@ -246,18 +248,16 @@ impl Board {
                     if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
                         // Iterate over all possible promotions
                         for kind in Kind::get_promotable_kinds() {
-                            let chess_move = ChessMove::new(
-                                piece,
-                                origin_square,
-                                Action::MovePromotion(kind),
-                                destination_square.copy(),
-                            );
-                            pawn_moves.push(chess_move);
+                            let action = Action::MovePromotion(kind);
+                            add_move! {
+                                moves <- (piece, origin_square, action, destination_square.copy())
+                            }
                         }
                     } else {
                         // Regular move forward
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        pawn_moves.push(chess_move);
+                        add_move! {
+                            moves <- (piece, origin_square, Action::Move, destination_square)
+                        }
                     }
                 }
                 _ => {
@@ -289,27 +289,25 @@ impl Board {
                         if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
                             // Iterate over all possible promotions
                             for kind in Kind::get_promotable_kinds() {
-                                let chess_move = ChessMove::new(
-                                    piece,
-                                    origin_square,
-                                    Action::CapturePromotion(kind),
-                                    destination_square.copy(),
-                                );
-                                pawn_moves.push(chess_move);
+                                let action = Action::CapturePromotion(kind);
+                                add_move! {
+                                    moves <- (piece, origin_square, action, destination_square.copy())
+                                }
                             }
                         } else {
                             // Regular diagonal captures
-                            let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                            pawn_moves.push(chess_move);
+                            add_move! {
+                                moves <- (piece, origin_square, Action::Capture, destination_square)
+                            }
                         }
                     }
                     OccupiedBy::None => match &self.en_passant_target {
                         Some(square) => {
                             // Check if the destination square matches en passant target square
                             if destination_square == *square {
-                                let chess_move =
-                                    ChessMove::new(piece, origin_square, Action::EnPassant, destination_square);
-                                pawn_moves.push(chess_move);
+                                add_move! {
+                                    moves <- (piece, origin_square, Action::EnPassant, destination_square)
+                                }
                             }
                         }
                         None => {
@@ -323,9 +321,7 @@ impl Board {
             }
         }
 
-        // TODO: implement promotion
-
-        pawn_moves
+        moves
     }
 
     fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
@@ -376,16 +372,18 @@ impl Board {
                     }
                     OccupiedBy::OppositeColor => {
                         // Can capture opposite color
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        moves.push(chess_move);
+                        add_move! {
+                            moves <- (piece, origin_square, Action::Capture, destination_square)
+                        }
 
                         // But cannot move any further
                         break;
                     }
                     OccupiedBy::None => {
                         // Can move to empty square and keep moving
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                        moves.push(chess_move);
+                        add_move! {
+                            moves <- (piece, origin_square, Action::Move, destination_square)
+                        }
                     }
                 };
             }
@@ -409,13 +407,15 @@ impl Board {
                 }
                 OccupiedBy::OppositeColor => {
                     // Can capture opposite color
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                    moves.push(chess_move);
+                    add_move! {
+                        moves <- (piece, origin_square, Action::Capture, destination_square)
+                    }
                 }
                 OccupiedBy::None => {
                     // Can move to empty square
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                    moves.push(chess_move);
+                    add_move! {
+                        moves <- (piece, origin_square, Action::Move, destination_square)
+                    }
                 }
             };
         }
