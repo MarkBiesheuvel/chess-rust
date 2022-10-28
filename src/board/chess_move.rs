@@ -9,7 +9,8 @@ pub enum Action {
     Move,
     Capture,
     EnPassant,
-    // TODO: add MovePromotion and CapturePromotion
+    MovePromotion(Kind),
+    CapturePromotion(Kind),
     ShortCastle,
     LongCastle,
 }
@@ -50,7 +51,7 @@ impl ChessMove<'_> {
 impl fmt::Display for ChessMove<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Long algebraic notation
-        match self.action {
+        match &self.action {
             Action::ShortCastle => {
                 // Short castle notation
                 write!(f, "0-0")?;
@@ -61,34 +62,15 @@ impl fmt::Display for ChessMove<'_> {
             }
             _ => {
                 // Letter as used in algebraic notation
-                match self.piece.kind() {
-                    Kind::Bishop => {
-                        write!(f, "B")?;
-                    }
-                    Kind::King => {
-                        write!(f, "K")?;
-                    }
-                    Kind::Knight => {
-                        write!(f, "N")?;
-                    }
-                    Kind::Pawn => {
-                        // Implicit
-                    }
-                    Kind::Queen => {
-                        write!(f, "Q")?;
-                    }
-                    Kind::Rook => {
-                        write!(f, "R")?;
-                    }
-                }
+                write!(f, "{}", self.piece.kind())?;
 
                 // Starting square
                 // TODO: remove when not need and keep when ambiguous (short algebraic)
                 write!(f, "{}", self.origin_square)?;
 
                 // Captures
-                match self.action {
-                    Action::Capture | Action::EnPassant => {
+                match &self.action {
+                    Action::Capture | Action::EnPassant | Action::CapturePromotion(_) => {
                         write!(f, "x")?;
                     }
                     _ => {}
@@ -96,19 +78,21 @@ impl fmt::Display for ChessMove<'_> {
 
                 // Destination square
                 write!(f, "{}", self.destination_square)?;
-            }
-        }
 
-        // Extra notation for en passant (optional)
-        match self.action {
-            Action::EnPassant => {
-                write!(f, " e.p.")?;
+                // Extra notation for promotion or en passant
+                match &self.action {
+                    Action::MovePromotion(kind) | Action::CapturePromotion(kind) => {
+                        write!(f, "={}", kind)?;
+                    }
+                    Action::EnPassant => {
+                        write!(f, " e.p.")?;
+                    }
+                    _ => {}
+                }
             }
-            _ => {}
         }
 
         // TODO: add check(mate)
-        // TODO: add promotions
 
         // All okay
         Ok(())

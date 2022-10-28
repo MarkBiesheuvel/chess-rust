@@ -242,8 +242,23 @@ impl Board {
         for destination_square in line.into_iter().take(number_of_steps) {
             match self.is_occupied_by(&destination_square) {
                 OccupiedBy::None => {
-                    let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
-                    pawn_moves.push(chess_move);
+                    // If reached last rank, the pawn can promote
+                    if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
+                        // Iterate over all possible promotions
+                        for kind in Kind::get_promotable_kinds() {
+                            let chess_move = ChessMove::new(
+                                piece,
+                                origin_square,
+                                Action::MovePromotion(kind),
+                                destination_square.copy(),
+                            );
+                            pawn_moves.push(chess_move);
+                        }
+                    } else {
+                        // Regular move forward
+                        let chess_move = ChessMove::new(piece, origin_square, Action::Move, destination_square);
+                        pawn_moves.push(chess_move);
+                    }
                 }
                 _ => {
                     // Cannot capture or move through occupied squares, regardless of color
@@ -270,9 +285,23 @@ impl Board {
             for destination_square in diagonal.into_iter().take(1) {
                 match self.is_occupied_by(&destination_square) {
                     OccupiedBy::OppositeColor => {
-                        // Diagonal captures
-                        let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
-                        pawn_moves.push(chess_move);
+                        // If reached last rank, the pawn can promote
+                        if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
+                            // Iterate over all possible promotions
+                            for kind in Kind::get_promotable_kinds() {
+                                let chess_move = ChessMove::new(
+                                    piece,
+                                    origin_square,
+                                    Action::CapturePromotion(kind),
+                                    destination_square.copy(),
+                                );
+                                pawn_moves.push(chess_move);
+                            }
+                        } else {
+                            // Regular diagonal captures
+                            let chess_move = ChessMove::new(piece, origin_square, Action::Capture, destination_square);
+                            pawn_moves.push(chess_move);
+                        }
                     }
                     OccupiedBy::None => match &self.en_passant_target {
                         Some(square) => {

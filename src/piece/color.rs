@@ -15,5 +15,10 @@ impl Color {
         }
     }
 
-    // TODO: pub fn get_pawn_promotion_rank(&self) -> Rank
+    pub fn get_pawn_promotion_rank(&self) -> Rank {
+        match self {
+            Color::White => 8,
+            Color::Black => 1,
+        }
+    }
 }

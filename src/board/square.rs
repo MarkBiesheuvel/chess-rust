@@ -53,6 +53,12 @@ impl Square {
         Square { file, rank }
     }
 
+    // Square should generally not be copied, but only referenced
+    // Only exception is for pawn promotion, where one destination square is used in multiple moves/promotions
+    pub fn copy(&self) -> Square {
+        Square::new(self.file(), self.rank())
+    }
+
     pub fn file(&self) -> File {
         self.file
     }
