@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let record = "2bqkbnr/1P3ppp/n7/3Pp3/8/2NQ1N2/PBP2PPP/R3K2R w KQk e6 0 12";
     let mut board = Board::forsyth_edwards_notation(record)?;
 
-    for _ in 0..100 {
+    for _ in 0..10 {
         println!("{}", board);
 
         // Get all legal moves

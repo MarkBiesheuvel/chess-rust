@@ -38,4 +38,8 @@ impl Piece {
     pub fn kind(&self) -> &Kind {
         &self.kind
     }
+
+    pub fn promote(&mut self, kind: Kind) {
+        self.kind = kind;
+    }
 }

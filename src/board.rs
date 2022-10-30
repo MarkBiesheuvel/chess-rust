@@ -110,12 +110,15 @@ impl Board {
     // Make a move and update the board
     pub fn make_move(&mut self, chess_move: ChessMove) {
         // Get owned clones of the piece and destination square
-        let piece = chess_move.piece().clone();
+        let mut piece = chess_move.piece().clone();
         let origin_square = chess_move.origin_square();
         let destination_square = chess_move.destination_square().clone();
 
         // Get a borrowed reference to the color
         let color = &self.active_color;
+
+        // Get first rank for active color
+        let first_rank = color.get_first_rank();
 
         // Detect whether this is a pawn move
         // NOTE: captures promotion is covered under pawn move
@@ -136,7 +139,7 @@ impl Board {
                 self.castling_availability.disable_both(color);
             }
             Kind::Rook => {
-                if origin_square.rank() == self.active_color.get_first_rank() {
+                if origin_square.rank() == first_rank {
                     if origin_square.file() == 8 {
                         // Disable king side castling if the rook on the H-file moves
                         self.castling_availability.disable_kingside(color);
@@ -156,17 +159,61 @@ impl Board {
 
         // Update the rest of the piece placement based on the type of move
         match chess_move.action() {
-            Action::CapturePromotion(_kind) | Action::MovePromotion(_kind) => {
-                // TODO: implement update to piece kind
+            Action::CapturePromotion(kind) | Action::MovePromotion(kind) => {
+                // ASSERT: only pawns can promote
+                assert!(*piece.kind() == Kind::Pawn);
+
+                // Promote the piece to the new kind
+                piece.promote(kind.clone());
+                // And move it to the destination square
+                self.piece_placement.insert(destination_square, piece);
             }
             Action::ShortCastle => {
-                // TODO: implement king and rook move
+                // ASSERT: only king can castle
+                assert!(*piece.kind() == Kind::King);
+
+                // Move the king to the destination square
+                self.piece_placement.insert(destination_square, piece);
+
+                // Remove rook from H-file
+                let rook = self
+                    .piece_placement
+                    .remove(&Square::new(8, first_rank))
+                    .expect("rook should be there when castling");
+
+                // ASSERT: other piece must be a rook
+                assert!(*rook.kind() == Kind::Rook);
+
+                // Move rook to F-file
+                self.piece_placement.insert(Square::new(6, first_rank), rook);
             }
             Action::LongCastle => {
-                // TODO: implement king and rook move
+                // ASSERT: only king can castle
+                assert!(*piece.kind() == Kind::King);
+
+                // Move the king to the destination square
+                self.piece_placement.insert(destination_square, piece);
+
+                // Remove rook from H-file
+                let rook = self
+                    .piece_placement
+                    .remove(&Square::new(4, first_rank))
+                    .expect("rook should be there when castling");
+
+                // ASSERT: other piece must be a rook
+                assert!(*rook.kind() == Kind::Rook);
+
+                // Move rook to F-file
+                self.piece_placement.insert(Square::new(6, first_rank), rook);
             }
             Action::EnPassant => {
-                // TODO: implement removal of opposite side pawn
+                // ASSERT: only pawns can promote
+                assert!(*piece.kind() == Kind::Pawn);
+
+                // Move the pawn to the destination square
+                self.piece_placement.insert(destination_square, piece);
+
+                // TODO: calculate the square of the other pawn and remove it
             }
             Action::Move | Action::Capture => {
                 // Simply place the piece on the destination square
