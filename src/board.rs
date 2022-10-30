@@ -28,8 +28,8 @@ pub struct Board {
     active_color: Color,
     castling_availability: CastlingAvailability,
     en_passant_target: Option<Square>,
-    halfmove_clock: u8,
-    fullmove_number: u8,
+    halfmove_clock: u16,
+    fullmove_number: u16,
 }
 impl Board {
     // Public initializer
@@ -38,8 +38,8 @@ impl Board {
         active_color: Color,
         castling_availability: CastlingAvailability,
         en_passant_target: Option<Square>,
-        halfmove_clock: u8,
-        fullmove_number: u8,
+        halfmove_clock: u16,
+        fullmove_number: u16,
     ) -> Board {
         Board {
             piece_placement,
@@ -114,6 +114,9 @@ impl Board {
         let origin_square = chess_move.origin_square();
         let destination_square = chess_move.destination_square().clone();
 
+        // Get a borrowed reference to the color
+        let color = &self.active_color;
+
         // Detect whether this is a pawn move
         // NOTE: captures promotion is covered under pawn move
         let is_pawn_move = *piece.kind() == Kind::Pawn;
@@ -126,10 +129,32 @@ impl Board {
             self.halfmove_clock += 1;
         }
 
+        // Update the castling availability
+        match piece.kind() {
+            Kind::King => {
+                // Disable castling on both sides when king moves
+                self.castling_availability.disable_both(color);
+            }
+            Kind::Rook => {
+                if origin_square.rank() == self.active_color.get_first_rank() {
+                    if origin_square.file() == 8 {
+                        // Disable king side castling if the rook on the H-file moves
+                        self.castling_availability.disable_kingside(color);
+                    } else if origin_square.file() == 1 {
+                        // Disable queen side castling if the rook on the A-file moves
+                        self.castling_availability.disable_queenside(color);
+                    }
+                }
+            }
+            _ => {
+                // Irrelevant for castling
+            }
+        }
+
         // Remove the piece from the origin square (always happens)
         self.piece_placement.remove(origin_square);
 
-        // Update the piece placement
+        // Update the rest of the piece placement based on the type of move
         match chess_move.action() {
             Action::CapturePromotion(_kind) | Action::MovePromotion(_kind) => {
                 // TODO: implement update to piece kind
@@ -149,8 +174,6 @@ impl Board {
                 self.piece_placement.insert(destination_square, piece);
             }
         }
-
-        // TODO: disable castling availability if king or rook moved
 
         // Update active color and update fullmove clock
         match self.active_color {
@@ -290,7 +313,7 @@ impl Board {
         let mut moves = MoveList::new();
 
         // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
-        let number_of_steps = if origin_square.rank() == self.active_color.get_pawn_starting_rank() {
+        let number_of_steps = if origin_square.rank() == self.active_color.get_second_rank() {
             2
         } else {
             1
@@ -307,7 +330,7 @@ impl Board {
             match self.is_occupied_by(&destination_square) {
                 OccupiedBy::None => {
                     // If reached last rank, the pawn can promote
-                    if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
+                    if destination_square.rank() == self.active_color.get_eight_rank() {
                         // Iterate over all possible promotions
                         for kind in Kind::get_promotable_kinds() {
                             let action = Action::MovePromotion(kind);
@@ -348,7 +371,7 @@ impl Board {
                 match self.is_occupied_by(&destination_square) {
                     OccupiedBy::OppositeColor => {
                         // If reached last rank, the pawn can promote
-                        if destination_square.rank() == self.active_color.get_pawn_promotion_rank() {
+                        if destination_square.rank() == self.active_color.get_eight_rank() {
                             // Iterate over all possible promotions
                             for kind in Kind::get_promotable_kinds() {
                                 let action = Action::CapturePromotion(kind);

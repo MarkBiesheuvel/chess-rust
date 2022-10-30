@@ -248,8 +248,8 @@ fn parse_en_passant_target_rank(character: Option<char>) -> Result<i8, ParseErro
     }
 }
 
-fn parse_number(field: &str) -> Result<u8, ParseError> {
-    match field.parse::<u8>() {
+fn parse_number(field: &str) -> Result<u16, ParseError> {
+    match field.parse::<u16>() {
         Ok(number) => Ok(number),
         Err(_) => Err(ParseError::InvalidNumber),
     }

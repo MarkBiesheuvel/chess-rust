@@ -41,4 +41,31 @@ impl CastlingAvailability {
             piece::Color::Black => self.black_queenside,
         }
     }
+
+    pub fn disable_both(&mut self, color: &piece::Color) {
+        self.disable_kingside(color);
+        self.disable_queenside(color);
+    }
+
+    pub fn disable_kingside(&mut self, color: &piece::Color) {
+        match color {
+            piece::Color::White => {
+                self.white_kingside = false;
+            }
+            piece::Color::Black => {
+                self.black_kingside = false;
+            }
+        }
+    }
+
+    pub fn disable_queenside(&mut self, color: &piece::Color) {
+        match color {
+            piece::Color::White => {
+                self.white_queenside = false;
+            }
+            piece::Color::Black => {
+                self.black_queenside = false;
+            }
+        }
+    }
 }
