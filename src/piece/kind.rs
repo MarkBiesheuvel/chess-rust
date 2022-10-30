@@ -3,7 +3,7 @@ use std::fmt;
 
 const PROMOTABLE_KINDS: [Kind; 4] = [Kind::Bishop, Kind::Knight, Kind::Rook, Kind::Queen];
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Kind {
     Bishop,
     King,

@@ -28,7 +28,7 @@ const KING_MOVE_OFFSETS: [Offset; 8] = [
 ];
 
 // Type for squares of the chess board
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone)]
 pub struct Square {
     file: File,
     rank: Rank,

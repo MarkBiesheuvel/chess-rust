@@ -11,7 +11,7 @@ pub type Rank = i8;
 pub type PiecePlacement = collections::HashMap<Square, Piece>;
 
 // Custom type alias for list of chess moves
-pub type MoveList<'a> = Vec<ChessMove<'a>>;
+pub type MoveList = Vec<ChessMove>;
 
 // Custom type alias for list of squares
 pub type SquareList<'a> = Vec<Square>;

@@ -4,7 +4,7 @@ pub use kind::Kind;
 mod color;
 mod kind;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Piece {
     color: Color,
     kind: Kind,

@@ -20,8 +20,8 @@ macro_rules! piece_placement {
 
 #[macro_export]
 macro_rules! add_move {
-    {$list: ident <- ($piece: expr, $origin: expr, $action: expr, $destination: expr)} => {
-        let chess_move = crate::board::ChessMove::new($piece, $origin, $action, $destination);
+    {$list: ident <- ($piece: ident, $origin: ident, $action: expr, $destination: expr)} => {
+        let chess_move = crate::board::ChessMove::new($piece.clone(), $origin.clone(), $action, $destination);
         $list.push(chess_move);
     };
 }

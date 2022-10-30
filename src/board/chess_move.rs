@@ -4,7 +4,7 @@ use std::fmt;
 use crate::board::Square;
 use crate::piece::{Kind, Piece};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Action {
     Move,
     Capture,
@@ -18,21 +18,16 @@ pub enum Action {
 // The starting square is owned by the Board, so we are just borrowing (referencing) it in the ChessMove
 // The destination square was just created, so we can take over ownership
 #[derive(Debug)]
-pub struct ChessMove<'a> {
-    piece: &'a Piece,
-    origin_square: &'a Square,
+pub struct ChessMove {
+    piece: Piece,
+    origin_square: Square,
     action: Action,
     destination_square: Square,
 }
-impl ChessMove<'_> {
-    pub fn new<'a>(
-        piece: &'a Piece,
-        origin_square: &'a Square,
-        action: Action,
-        destination_square: Square,
-    ) -> ChessMove {
+impl ChessMove {
+    pub fn new(piece: Piece, origin_square: Square, action: Action, destination_square: Square) -> ChessMove {
         // It wouldn't be much of a move if we stay at the same square
-        if *origin_square == destination_square {
+        if origin_square == destination_square {
             panic!("a move needs to go from one square to a different one");
         }
 
@@ -48,6 +43,10 @@ impl ChessMove<'_> {
         &self.piece
     }
 
+    pub fn origin_square(&self) -> &Square {
+        &self.origin_square
+    }
+
     pub fn action(&self) -> &Action {
         &self.action
     }
@@ -56,8 +55,8 @@ impl ChessMove<'_> {
         &self.destination_square
     }
 }
-impl fmt::Display for ChessMove<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for ChessMove {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Long algebraic notation
         match &self.action {
             Action::ShortCastle => {

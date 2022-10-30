@@ -1,7 +1,7 @@
 // Absolute imports within crate
 use crate::board::Rank;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Color {
     Black,
     White,

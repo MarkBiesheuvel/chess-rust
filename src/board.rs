@@ -108,22 +108,60 @@ impl Board {
     }
 
     // Make a move and update the board
-    pub fn make_move(&self, chess_move: ChessMove) {
+    pub fn make_move(&mut self, chess_move: ChessMove) {
+        // Get owned clones of the piece and destination square
+        let piece = chess_move.piece().clone();
+        let origin_square = chess_move.origin_square();
+        let destination_square = chess_move.destination_square().clone();
+
         // Detect whether this is a pawn move
         // NOTE: captures promotion is covered under pawn move
-        let is_pawn_move = *chess_move.piece().kind() == Kind::Pawn;
-        let is_captures = *chess_move.action() == Action::Capture; 
+        let is_pawn_move = *piece.kind() == Kind::Pawn;
+        let is_captures = *chess_move.action() == Action::Capture;
 
         // Reset the halfmove clock is there was a pawn move or captures, and increment otherwise
         if is_pawn_move || is_captures {
-            // self.halfmove_clock = 0;
+            self.halfmove_clock = 0;
         } else {
-            // self.halfmove_clock += 1;
+            self.halfmove_clock += 1;
         }
 
-        // TODO: remove these two lines after successful refactoring
-        self.halfmove_clock;
-        self.fullmove_number;
+        // Remove the piece from the origin square (always happens)
+        self.piece_placement.remove(origin_square);
+
+        // Update the piece placement
+        match chess_move.action() {
+            Action::CapturePromotion(_kind) | Action::MovePromotion(_kind) => {
+                // TODO: implement update to piece kind
+            }
+            Action::ShortCastle => {
+                // TODO: implement king and rook move
+            }
+            Action::LongCastle => {
+                // TODO: implement king and rook move
+            }
+            Action::EnPassant => {
+                // TODO: implement removal of opposite side pawn
+            }
+            Action::Move | Action::Capture => {
+                // Simply place the piece on the destination square
+                // If the move was a capture, the piece that was originally on the square will automatically be removed
+                self.piece_placement.insert(destination_square, piece);
+            }
+        }
+
+        // TODO: disable castling availability if king or rook moved
+
+        // Update active color and update fullmove clock
+        match self.active_color {
+            Color::White => {
+                self.active_color = Color::Black;
+            }
+            Color::Black => {
+                self.active_color = Color::White;
+                self.fullmove_number += 1;
+            }
+        }
     }
 
     // Returns all pieces
@@ -180,7 +218,7 @@ impl Board {
             .collect()
     }
 
-    fn legal_bishop_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_bishop_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         // Bishop moves into 4 different directions (4 diagonal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_top_right_diagonal(),
@@ -193,7 +231,7 @@ impl Board {
         self.legal_moves_for_lines(origin_square, piece, lines)
     }
 
-    fn legal_king_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_king_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         let mut moves = MoveList::new();
 
         // Regular king moves
@@ -215,7 +253,7 @@ impl Board {
             if in_between_square_are_empty {
                 let destination_square = Square::new(7, origin_square.rank());
                 add_move! {
-                    moves <- (piece, origin_square, Action::ShortCastle, destination_square)
+                     moves <- (piece, origin_square, Action::ShortCastle, destination_square)
                 }
             }
         }
@@ -235,7 +273,7 @@ impl Board {
             if in_between_square_are_empty {
                 let destination_square = Square::new(3, origin_square.rank());
                 add_move! {
-                    moves <- (piece, origin_square, Action::LongCastle, destination_square)
+                     moves <- (piece, origin_square, Action::LongCastle, destination_square)
                 }
             }
         }
@@ -243,12 +281,12 @@ impl Board {
         moves
     }
 
-    fn legal_knight_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_knight_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         let group: SquareList = origin_square.squares_on_knight_moves();
         self.legal_moves_for_group(origin_square, piece, group)
     }
 
-    fn legal_pawn_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_pawn_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         let mut moves = MoveList::new();
 
         // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
@@ -274,13 +312,13 @@ impl Board {
                         for kind in Kind::get_promotable_kinds() {
                             let action = Action::MovePromotion(kind);
                             add_move! {
-                                moves <- (piece, origin_square, action, destination_square.copy())
+                                 moves <- (piece, origin_square, action, destination_square.copy())
                             }
                         }
                     } else {
                         // Regular move forward
                         add_move! {
-                            moves <- (piece, origin_square, Action::Move, destination_square)
+                             moves <- (piece, origin_square, Action::Move, destination_square)
                         }
                     }
                 }
@@ -315,13 +353,13 @@ impl Board {
                             for kind in Kind::get_promotable_kinds() {
                                 let action = Action::CapturePromotion(kind);
                                 add_move! {
-                                    moves <- (piece, origin_square, action, destination_square.copy())
+                                     moves <- (piece, origin_square, action, destination_square.clone())
                                 }
                             }
                         } else {
                             // Regular diagonal captures
                             add_move! {
-                                moves <- (piece, origin_square, Action::Capture, destination_square)
+                                 moves <- (piece, origin_square, Action::Capture, destination_square)
                             }
                         }
                     }
@@ -330,7 +368,7 @@ impl Board {
                             // Check if the destination square matches en passant target square
                             if destination_square == *square {
                                 add_move! {
-                                    moves <- (piece, origin_square, Action::EnPassant, destination_square)
+                                     moves <- (piece, origin_square, Action::EnPassant, destination_square)
                                 }
                             }
                         }
@@ -348,7 +386,7 @@ impl Board {
         moves
     }
 
-    fn legal_queen_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_queen_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         // Queen moves into 8 different directions (2 vertical, 2 horizontal, and 4 diagonal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_up_vertical(),
@@ -365,7 +403,7 @@ impl Board {
         self.legal_moves_for_lines(origin_square, piece, lines)
     }
 
-    fn legal_rook_moves<'a>(&self, origin_square: &'a Square, piece: &'a Piece) -> MoveList<'a> {
+    fn legal_rook_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
         // Rook moves into 4 different directions(2 vertical and 2 horizontal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_up_vertical(),
@@ -378,12 +416,7 @@ impl Board {
         self.legal_moves_for_lines(origin_square, piece, lines)
     }
 
-    fn legal_moves_for_lines<'a>(
-        &self,
-        origin_square: &'a Square,
-        piece: &'a Piece,
-        lines: Vec<SquareList>,
-    ) -> MoveList<'a> {
+    fn legal_moves_for_lines(&self, origin_square: &Square, piece: &Piece, lines: Vec<SquareList>) -> MoveList {
         let mut moves = Vec::new();
 
         // Add legal moves for each of those direction
@@ -416,12 +449,7 @@ impl Board {
         moves
     }
 
-    fn legal_moves_for_group<'a>(
-        &self,
-        origin_square: &'a Square,
-        piece: &'a Piece,
-        group: SquareList,
-    ) -> MoveList<'a> {
+    fn legal_moves_for_group(&self, origin_square: &Square, piece: &Piece, group: SquareList) -> MoveList {
         let mut moves = Vec::new();
 
         for destination_square in group.into_iter() {
