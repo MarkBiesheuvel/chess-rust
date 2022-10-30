@@ -9,9 +9,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("{}", board);
 
-    // Try out the new Board::white_pieces function
-    for legal_move in board.legal_moves() {
-        println!("{}", legal_move);
+    // Get all legal moves
+    let legal_moves = board.legal_moves();
+
+    // Just pick the first legal move
+    match legal_moves.into_iter().nth(0) {
+        Some(legal_move) => {
+            println!("{}", legal_move);
+            board.make_move(legal_move);
+        }
+        None => {
+            println!("No legal moves left");
+        }
     }
 
     Ok(())

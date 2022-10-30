@@ -28,6 +28,8 @@ pub struct Board {
     active_color: Color,
     castling_availability: CastlingAvailability,
     en_passant_target: Option<Square>,
+    halfmove_clock: u8,
+    fullmove_number: u8,
 }
 impl Board {
     // Public initializer
@@ -36,12 +38,16 @@ impl Board {
         active_color: Color,
         castling_availability: CastlingAvailability,
         en_passant_target: Option<Square>,
+        halfmove_clock: u8,
+        fullmove_number: u8,
     ) -> Board {
         Board {
             piece_placement,
             active_color,
             castling_availability,
             en_passant_target,
+            halfmove_clock,
+            fullmove_number,
         }
     }
 
@@ -85,21 +91,39 @@ impl Board {
             (7, 8) => (Color::Black, Kind::Knight),
             (8, 8) => (Color::Black, Kind::Rook),
         };
-        let active_color = Color::White;
-        let castling_availability = CastlingAvailability::default();
-        let en_passant_target = None;
 
         Board {
             piece_placement,
-            active_color,
-            castling_availability,
-            en_passant_target,
+            active_color: Color::White,
+            castling_availability: CastlingAvailability::default(),
+            en_passant_target: None,
+            halfmove_clock: 0,
+            fullmove_number: 1,
         }
     }
 
     // Initialize a board from Forsyth–Edwards Notation
     pub fn forsyth_edwards_notation(record: &str) -> Result<Board, ParseError> {
         parser::parse_forsyth_edwards_notation(record)
+    }
+
+    // Make a move and update the board
+    pub fn make_move(&self, chess_move: ChessMove) {
+        // Detect whether this is a pawn move
+        // NOTE: captures promotion is covered under pawn move
+        let is_pawn_move = *chess_move.piece().kind() == Kind::Pawn;
+        let is_captures = *chess_move.action() == Action::Capture; 
+
+        // Reset the halfmove clock is there was a pawn move or captures, and increment otherwise
+        if is_pawn_move || is_captures {
+            // self.halfmove_clock = 0;
+        } else {
+            // self.halfmove_clock += 1;
+        }
+
+        // TODO: remove these two lines after successful refactoring
+        self.halfmove_clock;
+        self.fullmove_number;
     }
 
     // Returns all pieces

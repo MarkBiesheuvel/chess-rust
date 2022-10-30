@@ -10,6 +10,7 @@ pub enum ParseError {
     InvalidFile(char),
     InvalidRank(char),
     InvalidPiece(char),
+    InvalidNumber,
     UnexpectedEnd,
     IncompletePiecePlacement,
 }
@@ -30,6 +31,9 @@ impl fmt::Display for ParseError {
             }
             ParseError::InvalidPiece(character) => {
                 write!(f, "invalid piece provided: {:?}", character)
+            }
+            ParseError::InvalidNumber => {
+                write!(f, "invalid number")
             }
             ParseError::UnexpectedEnd => {
                 write!(f, "fen record was too short")

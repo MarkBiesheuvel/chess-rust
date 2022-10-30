@@ -44,8 +44,16 @@ impl ChessMove<'_> {
         }
     }
 
+    pub fn piece(&self) -> &Piece {
+        &self.piece
+    }
+
     pub fn action(&self) -> &Action {
         &self.action
+    }
+
+    pub fn destination_square(&self) -> &Square {
+        &self.destination_square
     }
 }
 impl fmt::Display for ChessMove<'_> {

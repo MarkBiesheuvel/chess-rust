@@ -27,14 +27,21 @@ pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, ParseError>
     let field = field_iterator.next()?;
     let en_passant_target = parse_en_passant_target_square(field)?;
 
-    // TODO: create struct for target square
-    // TODO: implement parse function for halfmove clock and fullmove number
+    // Detect halfmove clock
+    let field = field_iterator.next()?;
+    let halfmove_clock = parse_number(field)?;
+
+    // Detect fullmove number
+    let field = field_iterator.next()?;
+    let fullmove_number = parse_number(field)?;
 
     Ok(Board::new(
         piece_placement,
         active_color,
         castling_availability,
         en_passant_target,
+        halfmove_clock,
+        fullmove_number,
     ))
 }
 
@@ -238,5 +245,12 @@ fn parse_en_passant_target_rank(character: Option<char>) -> Result<i8, ParseErro
         },
         // End of specification reached too early
         None => Err(ParseError::UnexpectedEnd),
+    }
+}
+
+fn parse_number(field: &str) -> Result<u8, ParseError> {
+    match field.parse::<u8>() {
+        Ok(number) => Ok(number),
+        Err(_) => Err(ParseError::InvalidNumber),
     }
 }
