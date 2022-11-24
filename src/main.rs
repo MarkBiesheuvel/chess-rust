@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match legal_moves.into_iter().nth(0) {
             Some(legal_move) => {
                 println!("{}\n", legal_move);
-                board.make_move(legal_move);
+                board.make_move(legal_move)?;
             }
             None => {
                 println!("No legal moves left");

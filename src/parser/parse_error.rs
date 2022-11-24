@@ -1,47 +1,23 @@
 // External imports
-use std::error;
-use std::fmt;
+use thiserror::Error;
 
 // Enum to represent the different error types
-#[derive(Debug, PartialEq)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ParseError {
+    #[error("invalid castling availability provided: {0:?}")]
     InvalidCastling(char),
+    #[error("invalid active color provided: {0:?}")]
     InvalidColor(char),
+    #[error("invalid file for en passant target square provided: {0:?}")]
     InvalidFile(char),
+    #[error("invalid rank for en passant target square provided: {0:?}")]
     InvalidRank(char),
+    #[error("invalid piece provided: {0:?}")]
     InvalidPiece(char),
+    #[error("invalid number")]
     InvalidNumber,
+    #[error("fen record was too short")]
     UnexpectedEnd,
+    #[error("not all squares were provided in piece placement field")]
     IncompletePiecePlacement,
 }
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ParseError::InvalidCastling(character) => {
-                write!(f, "invalid castling availability provided: {:?}", character)
-            }
-            ParseError::InvalidColor(character) => {
-                write!(f, "invalid active color provided: {:?}", character)
-            }
-            ParseError::InvalidFile(character) => {
-                write!(f, "invalid file for en passant target square provided: {:?}", character)
-            }
-            ParseError::InvalidRank(character) => {
-                write!(f, "invalid rank for en passant target square provided: {:?}", character)
-            }
-            ParseError::InvalidPiece(character) => {
-                write!(f, "invalid piece provided: {:?}", character)
-            }
-            ParseError::InvalidNumber => {
-                write!(f, "invalid number")
-            }
-            ParseError::UnexpectedEnd => {
-                write!(f, "fen record was too short")
-            }
-            ParseError::IncompletePiecePlacement => {
-                write!(f, "not all squares were provided in piece placement field")
-            }
-        }
-    }
-}
-impl error::Error for ParseError {}

@@ -2,11 +2,13 @@
 use crate::parser::{self, ParseError};
 use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
+use board_error::BoardError;
 pub use castling_availability::CastlingAvailability;
 pub use chess_move::{Action, ChessMove};
 pub use offset::Offset;
 pub use square::Square;
 pub use types::{File, MoveList, PiecePlacement, Rank, SquareList};
+mod board_error;
 mod castling_availability;
 mod chess_move;
 mod display;
@@ -108,7 +110,7 @@ impl Board {
     }
 
     // Make a move and update the board
-    pub fn make_move(&mut self, chess_move: ChessMove) {
+    pub fn make_move(&mut self, chess_move: ChessMove) -> Result<(), BoardError> {
         // Get owned clones of the piece and destination square
         let mut piece = chess_move.piece().clone();
         let origin_square = chess_move.origin_square();
@@ -120,13 +122,8 @@ impl Board {
         // Get first rank for active color
         let first_rank = color.get_first_rank();
 
-        // Detect whether this is a pawn move
-        // NOTE: captures promotion is covered under pawn move
-        let is_pawn_move = *piece.kind() == Kind::Pawn;
-        let is_captures = *chess_move.action() == Action::Capture;
-
         // Reset the halfmove clock is there was a pawn move or captures, and increment otherwise
-        if is_pawn_move || is_captures {
+        if *piece.kind() == Kind::Pawn || *chess_move.action() == Action::Capture {
             self.halfmove_clock = 0;
         } else {
             self.halfmove_clock += 1;
@@ -139,6 +136,9 @@ impl Board {
                 self.castling_availability.disable_both(color);
             }
             Kind::Rook => {
+                // NOTE: it does not matter if the rook has or hasn't moved.
+                // If it was moved back to a1/a8/h1/h8, it would have left the square before
+                // and castling would already be disabled.
                 if origin_square.rank() == first_rank {
                     if origin_square.file() == 8 {
                         // Disable king side castling if the rook on the H-file moves
@@ -155,60 +155,88 @@ impl Board {
         }
 
         // Remove the piece from the origin square (always happens)
-        self.piece_placement.remove(origin_square);
+        let origin_piece = self.piece_placement.remove(origin_square);
+
+        // Validation
+        match origin_piece {
+            Some(_) => {
+                // TODO: match `origin_piece` with piece in `chess_move`
+            }
+            None => {
+                // There was no piece on the square specified in the move
+                return Err(BoardError::PieceMissing(origin_square.clone()));
+            }
+        }
 
         // Update the rest of the piece placement based on the type of move
         match chess_move.action() {
             Action::CapturePromotion(kind) | Action::MovePromotion(kind) => {
-                // ASSERT: only pawns can promote
-                assert!(*piece.kind() == Kind::Pawn);
+                // Only pawns can promote
+                if *piece.kind() != Kind::Pawn {
+                    return Err(BoardError::InvalidPromotionPawn(piece.kind().clone()));
+                }
 
                 // Promote the piece to the new kind
                 piece.promote(kind.clone());
+
                 // And move it to the destination square
                 self.piece_placement.insert(destination_square, piece);
             }
             Action::ShortCastle => {
-                // ASSERT: only king can castle
-                assert!(*piece.kind() == Kind::King);
+                // Only king can castle
+                if *piece.kind() != Kind::King {
+                    return Err(BoardError::InvalidCastlingKing(piece.kind().clone()));
+                }
 
                 // Move the king to the destination square
                 self.piece_placement.insert(destination_square, piece);
 
-                // Remove rook from H-file
-                let rook = self
+                // Move rook from H-file, ...
+                let rook_origin_square = Square::new(8, first_rank);
+                let rook_piece = self
                     .piece_placement
-                    .remove(&Square::new(8, first_rank))
-                    .expect("rook should be there when castling");
+                    .remove(&rook_origin_square)
+                    .ok_or(BoardError::PieceMissing(rook_origin_square))?;
 
-                // ASSERT: other piece must be a rook
-                assert!(*rook.kind() == Kind::Rook);
+                // Only rook can castle
+                if *rook_piece.kind() != Kind::Rook {
+                    return Err(BoardError::InvalidCastlingRook(rook_piece.kind().clone()));
+                }
 
-                // Move rook to F-file
-                self.piece_placement.insert(Square::new(6, first_rank), rook);
+                // ... to F-file
+                let rook_destination_square = Square::new(6, first_rank);
+                self.piece_placement.insert(rook_destination_square, rook_piece);
             }
             Action::LongCastle => {
-                // ASSERT: only king can castle
-                assert!(*piece.kind() == Kind::King);
+                // Only king can castle
+                if *piece.kind() != Kind::King {
+                    return Err(BoardError::InvalidCastlingKing(piece.kind().clone()));
+                }
 
                 // Move the king to the destination square
                 self.piece_placement.insert(destination_square, piece);
 
-                // Remove rook from H-file
-                let rook = self
+                // Move rook from A-file, ...
+                let rook_origin_square = Square::new(1, first_rank);
+                let rook_piece = self
                     .piece_placement
-                    .remove(&Square::new(4, first_rank))
-                    .expect("rook should be there when castling");
+                    .remove(&rook_origin_square)
+                    .ok_or(BoardError::PieceMissing(rook_origin_square))?;
 
-                // ASSERT: other piece must be a rook
-                assert!(*rook.kind() == Kind::Rook);
+                // Only rook can castle
+                if *rook_piece.kind() != Kind::Rook {
+                    return Err(BoardError::InvalidCastlingRook(rook_piece.kind().clone()));
+                }
 
-                // Move rook to F-file
-                self.piece_placement.insert(Square::new(6, first_rank), rook);
+                // ... to D-file
+                let rook_destination_square = Square::new(4, first_rank);
+                self.piece_placement.insert(rook_destination_square, rook_piece);
             }
             Action::EnPassant => {
                 // ASSERT: only pawns can promote
-                assert!(*piece.kind() == Kind::Pawn);
+                if *piece.kind() != Kind::Pawn {
+                    return Err(BoardError::InvalidEnPassantPawn(piece.kind().clone()));
+                }
 
                 // Move the pawn to the destination square
                 self.piece_placement.insert(destination_square, piece);
@@ -219,6 +247,8 @@ impl Board {
                 // Simply place the piece on the destination square
                 // If the move was a capture, the piece that was originally on the square will automatically be removed
                 self.piece_placement.insert(destination_square, piece);
+
+                // TODO: validate that a piece has been captured
             }
         }
 
@@ -232,6 +262,8 @@ impl Board {
                 self.fullmove_number += 1;
             }
         }
+
+        Ok(())
     }
 
     // Returns all pieces
