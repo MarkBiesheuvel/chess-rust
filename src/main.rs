@@ -19,6 +19,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             Some(legal_move) => {
                 println!("{}\n", legal_move);
                 board.make_move(legal_move)?;
+
+                board.is_in_check(board.active_color());
             }
             None => {
                 println!("No legal moves left");

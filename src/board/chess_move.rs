@@ -15,27 +15,35 @@ pub enum Action {
     LongCastle,
 }
 
-// The starting square is owned by the Board, so we are just borrowing (referencing) it in the ChessMove
-// The destination square was just created, so we can take over ownership
+#[derive(Debug, PartialEq, Clone)]
+pub enum MoveStatus {
+    Checkmate,
+    Check,
+    None,
+}
+
 #[derive(Debug)]
 pub struct ChessMove {
     piece: Piece,
     origin_square: Square,
     action: Action,
     destination_square: Square,
+    status: MoveStatus,
 }
 impl ChessMove {
-    pub fn new(piece: Piece, origin_square: Square, action: Action, destination_square: Square) -> ChessMove {
-        // It wouldn't be much of a move if we stay at the same square
-        if origin_square == destination_square {
-            panic!("a move needs to go from one square to a different one");
-        }
-
+    pub fn new(
+        piece: Piece,
+        origin_square: Square,
+        action: Action,
+        destination_square: Square,
+        status: MoveStatus,
+    ) -> ChessMove {
         ChessMove {
             piece,
             origin_square,
             action,
             destination_square,
+            status,
         }
     }
 
@@ -99,7 +107,16 @@ impl fmt::Display for ChessMove {
             }
         }
 
-        // TODO: add check(mate)
+        // Check or checkmate notation
+        match &self.status {
+            MoveStatus::Checkmate => {
+                write!(f, "#")?;
+            }
+            MoveStatus::Check => {
+                write!(f, "+")?;
+            }
+            _ => {}
+        }
 
         // All okay
         Ok(())
