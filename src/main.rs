@@ -4,11 +4,13 @@ use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
     // Create a board with an ongoing game
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-    let record = "2bqkbnr/1P3ppp/n7/3Pp3/8/2NQ1N2/PBP2PPP/R3K2R w KQk e6 0 12";
+    let record = "rnbqkbnr/ppp1p1pp/3p1p2/4P2Q/8/8/PPPP1PPP/RNB1KBNR b KQkq - 1 3";
     let mut board = Board::forsyth_edwards_notation(record)?;
 
     for _ in 0..10 {
         println!("{}", board);
+        
+        dbg!(board.is_in_check(board.active_color()));
 
         // Get all legal moves
         let legal_moves = board.legal_moves();
@@ -19,8 +21,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             Some(legal_move) => {
                 println!("{}\n", legal_move);
                 board.make_move(legal_move)?;
-
-                board.is_in_check(board.active_color());
             }
             None => {
                 println!("No legal moves left");

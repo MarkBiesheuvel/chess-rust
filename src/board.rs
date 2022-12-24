@@ -295,10 +295,10 @@ impl Board {
         !self.piece_placement.contains_key(square)
     }
 
-    fn is_occupied_by(&self, square: &Square) -> OccupiedBy {
+    fn is_occupied_by(&self, square: &Square, active_color: &Color) -> OccupiedBy {
         match self.piece_placement.get(square) {
             Some(piece) => {
-                if *piece.color() == self.active_color {
+                if piece.color() == active_color {
                     OccupiedBy::SameColor
                 } else {
                     OccupiedBy::OppositeColor
@@ -308,18 +308,32 @@ impl Board {
         }
     }
 
-    pub fn is_in_check(&self, color: &Color) -> bool {
+    pub fn is_in_check(&self, active_color: &Color) -> bool {
+        // Get color of opposite player
+        let opposite_color = match active_color {
+            Color::Black => &Color::White,
+            Color::White => &Color::Black,
+        };
+
+        // Get all pieces of the opponent
+        let opposite_pieces = self.piece_placement
+            .iter()
+            .filter(|(_, piece)| piece.color() == opposite_color);
+
+        // Determine which chess moves the opponent can make
+        let mut opposite_moves = opposite_pieces
+            .flat_map(|(square, piece)| self.legal_piece_moves(square, piece, opposite_color));
+
+        // Get the king of the active color
         let king = self.piece_placement
             .iter()
-            .into_iter()
-            .filter(|(_, piece)| piece.color() == color && piece.kind() == &Kind::King)
+            .filter(|(_, piece)| piece.color() == active_color && piece.kind() == &Kind::King)
             .next();
 
         match king {
-            Some((square, _piece)) => {
-                // TODO: determine if the opposite color can attack this square
-                dbg!(square);
-                false
+            Some((king_square, _piece)) => {
+                // Return true if any of the chess moves of the opponent could (theoretically) capture the kind
+                opposite_moves.any(|chess_move| chess_move.destination_square() == king_square)
             }
             None => {
                 // No king, so technically not in check
@@ -344,19 +358,23 @@ impl Board {
         self.piece_placement
             .iter()
             .filter(|(_, piece)| piece.color() == &self.active_color)
-            .flat_map(|(square, piece)| match piece.kind() {
-                Kind::Bishop => self.legal_bishop_moves(square, piece),
-                Kind::Knight => self.legal_knight_moves(square, piece),
-                Kind::King => self.legal_king_moves(square, piece),
-                Kind::Pawn => self.legal_pawn_moves(square, piece),
-                Kind::Queen => self.legal_queen_moves(square, piece),
-                Kind::Rook => self.legal_rook_moves(square, piece),
-            })
+            .flat_map(|(square, piece)| self.legal_piece_moves(square, piece, &self.active_color))
             // TODO: .filter() any moves that leave or bring the king in check
             .collect()
     }
 
-    fn legal_bishop_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_piece_moves(&self, square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
+        match piece.kind() {
+            Kind::Bishop => self.legal_bishop_moves(square, piece, active_color),
+            Kind::Knight => self.legal_knight_moves(square, piece, active_color),
+            Kind::King => self.legal_king_moves(square, piece, active_color),
+            Kind::Pawn => self.legal_pawn_moves(square, piece, active_color),
+            Kind::Queen => self.legal_queen_moves(square, piece, active_color),
+            Kind::Rook => self.legal_rook_moves(square, piece, active_color),
+        }
+    }
+
+    fn legal_bishop_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         // Bishop moves into 4 different directions (4 diagonal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_top_right_diagonal(),
@@ -366,18 +384,18 @@ impl Board {
         ];
 
         // Return result
-        self.legal_moves_for_lines(origin_square, piece, lines)
+        self.legal_moves_for_lines(origin_square, piece, active_color, lines)
     }
 
-    fn legal_king_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_king_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         let mut moves = MoveList::new();
 
         // Regular king moves
         let group: SquareList = origin_square.squares_on_king_move();
-        moves.append(&mut self.legal_moves_for_group(origin_square, piece, group));
+        moves.append(&mut self.legal_moves_for_group(origin_square, piece, active_color, group));
 
         // Short castling
-        if self.castling_availability.is_short_castle_available(&self.active_color) {
+        if self.castling_availability.is_short_castle_available(active_color) {
             // Check whether the two square right of the king are empty
             let in_between_square_are_empty = origin_square
                 .squares_on_right_horizontal()
@@ -396,7 +414,7 @@ impl Board {
         }
 
         // Long castling
-        if self.castling_availability.is_long_castle_available(&self.active_color) {
+        if self.castling_availability.is_long_castle_available(active_color) {
             // Check whether the three square left of the king are empty
             let in_between_square_are_empty = origin_square
                 .squares_on_left_horizontal()
@@ -417,33 +435,33 @@ impl Board {
         moves
     }
 
-    fn legal_knight_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_knight_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         let group: SquareList = origin_square.squares_on_knight_moves();
-        self.legal_moves_for_group(origin_square, piece, group)
+        self.legal_moves_for_group(origin_square, piece, active_color, group)
     }
 
-    fn legal_pawn_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_pawn_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         let mut moves = MoveList::new();
 
         // Two squares forward if the pawn hasn't moved from the starting rank yet, otherwise one square forward
-        let number_of_steps = if origin_square.rank() == self.active_color.get_second_rank() {
+        let number_of_steps = if origin_square.rank() == active_color.get_second_rank() {
             2
         } else {
             1
         };
 
         // Get the vertical line for a specific number of steps
-        let line: SquareList = match self.active_color {
+        let line: SquareList = match active_color {
             Color::White => origin_square.squares_on_up_vertical(),
             Color::Black => origin_square.squares_on_down_vertical(),
         };
 
         // Filter our any squares that are blocked
         for destination_square in line.into_iter().take(number_of_steps) {
-            match self.is_occupied_by(&destination_square) {
+            match self.is_occupied_by(&destination_square, active_color) {
                 OccupiedBy::None => {
                     // If reached last rank, the pawn can promote
-                    if destination_square.rank() == self.active_color.get_eight_rank() {
+                    if destination_square.rank() == active_color.get_eight_rank() {
                         // Iterate over all possible promotions
                         for kind in Kind::get_promotable_kinds() {
                             let action = Action::MovePromotion(kind);
@@ -464,7 +482,7 @@ impl Board {
         }
 
         // Right diagonal capture or en passant
-        let diagonals: [SquareList; 2] = match self.active_color {
+        let diagonals: [SquareList; 2] = match active_color {
             Color::White => [
                 origin_square.squares_on_top_left_diagonal(),
                 origin_square.squares_on_top_right_diagonal(),
@@ -479,10 +497,10 @@ impl Board {
             // Only go one square into the diagonal direction
             // NOTE: the diagonal might be empty if the piece is at the edge of the board
             for destination_square in diagonal.into_iter().take(1) {
-                match self.is_occupied_by(&destination_square) {
+                match self.is_occupied_by(&destination_square, active_color) {
                     OccupiedBy::OppositeColor => {
                         // If reached last rank, the pawn can promote
-                        if destination_square.rank() == self.active_color.get_eight_rank() {
+                        if destination_square.rank() == active_color.get_eight_rank() {
                             // Iterate over all possible promotions
                             for kind in Kind::get_promotable_kinds() {
                                 let action = Action::CapturePromotion(kind);
@@ -518,7 +536,7 @@ impl Board {
         moves
     }
 
-    fn legal_queen_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_queen_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         // Queen moves into 8 different directions (2 vertical, 2 horizontal, and 4 diagonal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_up_vertical(),
@@ -532,10 +550,10 @@ impl Board {
         ];
 
         // Return result
-        self.legal_moves_for_lines(origin_square, piece, lines)
+        self.legal_moves_for_lines(origin_square, piece, active_color, lines)
     }
 
-    fn legal_rook_moves(&self, origin_square: &Square, piece: &Piece) -> MoveList {
+    fn legal_rook_moves(&self, origin_square: &Square, piece: &Piece, active_color: &Color) -> MoveList {
         // Rook moves into 4 different directions(2 vertical and 2 horizontal)
         let lines: Vec<SquareList> = vec![
             origin_square.squares_on_up_vertical(),
@@ -545,16 +563,16 @@ impl Board {
         ];
 
         // Return result
-        self.legal_moves_for_lines(origin_square, piece, lines)
+        self.legal_moves_for_lines(origin_square, piece, active_color, lines)
     }
 
-    fn legal_moves_for_lines(&self, origin_square: &Square, piece: &Piece, lines: Vec<SquareList>) -> MoveList {
+    fn legal_moves_for_lines(&self, origin_square: &Square, piece: &Piece, active_color: &Color, lines: Vec<SquareList>) -> MoveList {
         let mut moves = Vec::new();
 
         // Add legal moves for each of those direction
         for line in lines {
             for destination_square in line.into_iter() {
-                match self.is_occupied_by(&destination_square) {
+                match self.is_occupied_by(&destination_square, active_color) {
                     OccupiedBy::SameColor => {
                         // Cannot take or move through own piece
                         break;
@@ -579,11 +597,11 @@ impl Board {
         moves
     }
 
-    fn legal_moves_for_group(&self, origin_square: &Square, piece: &Piece, group: SquareList) -> MoveList {
+    fn legal_moves_for_group(&self, origin_square: &Square, piece: &Piece, active_color: &Color, group: SquareList) -> MoveList {
         let mut moves = Vec::new();
 
         for destination_square in group.into_iter() {
-            match self.is_occupied_by(&destination_square) {
+            match self.is_occupied_by(&destination_square, active_color) {
                 OccupiedBy::SameColor => {
                     // Cannot take piece of same color
                 }
