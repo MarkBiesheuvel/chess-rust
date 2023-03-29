@@ -32,11 +32,7 @@ pub struct ChessMove {
 }
 impl ChessMove {
     pub fn new(
-        piece: Piece,
-        origin_square: Square,
-        action: Action,
-        destination_square: Square,
-        status: MoveStatus,
+        piece: Piece, origin_square: Square, action: Action, destination_square: Square, status: MoveStatus,
     ) -> ChessMove {
         ChessMove {
             piece,

@@ -9,12 +9,10 @@ pub struct CastlingAvailability {
     black_kingside: bool,
     black_queenside: bool,
 }
+
 impl CastlingAvailability {
     pub fn new(
-        white_kingside: bool,
-        white_queenside: bool,
-        black_kingside: bool,
-        black_queenside: bool,
+        white_kingside: bool, white_queenside: bool, black_kingside: bool, black_queenside: bool,
     ) -> CastlingAvailability {
         CastlingAvailability {
             white_kingside,
@@ -24,7 +22,7 @@ impl CastlingAvailability {
         }
     }
 
-    pub fn default() -> CastlingAvailability {
+    pub fn default() -> Self {
         CastlingAvailability::new(true, true, true, true)
     }
 

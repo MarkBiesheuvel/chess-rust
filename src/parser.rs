@@ -183,12 +183,7 @@ fn parse_castling_availability(castling_availability_field: &str) -> Result<Cast
         }
     }
 
-    Ok(CastlingAvailability::new(
-        white_kingside,
-        white_queenside,
-        black_kingside,
-        black_queenside,
-    ))
+    Ok(CastlingAvailability::new(white_kingside, white_queenside, black_kingside, black_queenside))
 }
 
 fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Result<Option<Square>, ParseError> {

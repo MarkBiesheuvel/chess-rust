@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for _ in 0..10 {
         println!("{}", board);
-        
+
         dbg!(board.is_in_check(board.active_color()));
 
         // Get all legal moves

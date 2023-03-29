@@ -4,7 +4,7 @@ use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 use board_error::BoardError;
 pub use castling_availability::CastlingAvailability;
-pub use chess_move::{Action, MoveStatus, ChessMove};
+pub use chess_move::{Action, ChessMove, MoveStatus};
 pub use offset::Offset;
 pub use square::Square;
 pub use types::{File, MoveList, PiecePlacement, Rank, SquareList};
@@ -36,12 +36,8 @@ pub struct Board {
 impl Board {
     // Public initializer
     pub fn new(
-        piece_placement: PiecePlacement,
-        active_color: Color,
-        castling_availability: CastlingAvailability,
-        en_passant_target: Option<Square>,
-        halfmove_clock: u16,
-        fullmove_number: u16,
+        piece_placement: PiecePlacement, active_color: Color, castling_availability: CastlingAvailability,
+        en_passant_target: Option<Square>, halfmove_clock: u16, fullmove_number: u16,
     ) -> Board {
         Board {
             piece_placement,
@@ -209,7 +205,8 @@ impl Board {
 
                 // ... to F-file
                 let rook_destination_square = Square::new(6, first_rank);
-                self.piece_placement.insert(rook_destination_square, rook_piece);
+                self.piece_placement
+                    .insert(rook_destination_square, rook_piece);
             }
             Action::LongCastle => {
                 // Only king can castle
@@ -234,7 +231,8 @@ impl Board {
 
                 // ... to D-file
                 let rook_destination_square = Square::new(4, first_rank);
-                self.piece_placement.insert(rook_destination_square, rook_piece);
+                self.piece_placement
+                    .insert(rook_destination_square, rook_piece);
             }
             Action::EnPassant => {
                 // ASSERT: only pawns can promote
@@ -316,16 +314,18 @@ impl Board {
         };
 
         // Get all pieces of the opponent
-        let opposite_pieces = self.piece_placement
+        let opposite_pieces = self
+            .piece_placement
             .iter()
             .filter(|(_, piece)| piece.color() == opposite_color);
 
         // Determine which chess moves the opponent can make
-        let mut opposite_moves = opposite_pieces
-            .flat_map(|(square, piece)| self.legal_piece_moves(square, piece, opposite_color));
+        let mut opposite_moves =
+            opposite_pieces.flat_map(|(square, piece)| self.legal_piece_moves(square, piece, opposite_color));
 
         // Get the king of the active color
-        let king = self.piece_placement
+        let king = self
+            .piece_placement
             .iter()
             .filter(|(_, piece)| piece.color() == active_color && piece.kind() == &Kind::King)
             .next();
@@ -340,7 +340,7 @@ impl Board {
                 // This would be an invalid position, but it's not up to this function to raise this issue
                 false
             }
-        } 
+        }
     }
 
     fn new_move(&self, piece: &Piece, origin_square: &Square, action: Action, destination_square: Square) -> ChessMove {
@@ -395,7 +395,10 @@ impl Board {
         moves.append(&mut self.legal_moves_for_group(origin_square, piece, active_color, group));
 
         // Short castling
-        if self.castling_availability.is_short_castle_available(active_color) {
+        if self
+            .castling_availability
+            .is_short_castle_available(active_color)
+        {
             // Check whether the two square right of the king are empty
             let in_between_square_are_empty = origin_square
                 .squares_on_right_horizontal()
@@ -414,7 +417,10 @@ impl Board {
         }
 
         // Long castling
-        if self.castling_availability.is_long_castle_available(active_color) {
+        if self
+            .castling_availability
+            .is_long_castle_available(active_color)
+        {
             // Check whether the three square left of the king are empty
             let in_between_square_are_empty = origin_square
                 .squares_on_left_horizontal()
@@ -566,7 +572,9 @@ impl Board {
         self.legal_moves_for_lines(origin_square, piece, active_color, lines)
     }
 
-    fn legal_moves_for_lines(&self, origin_square: &Square, piece: &Piece, active_color: &Color, lines: Vec<SquareList>) -> MoveList {
+    fn legal_moves_for_lines(
+        &self, origin_square: &Square, piece: &Piece, active_color: &Color, lines: Vec<SquareList>,
+    ) -> MoveList {
         let mut moves = Vec::new();
 
         // Add legal moves for each of those direction
@@ -597,7 +605,9 @@ impl Board {
         moves
     }
 
-    fn legal_moves_for_group(&self, origin_square: &Square, piece: &Piece, active_color: &Color, group: SquareList) -> MoveList {
+    fn legal_moves_for_group(
+        &self, origin_square: &Square, piece: &Piece, active_color: &Color, group: SquareList,
+    ) -> MoveList {
         let mut moves = Vec::new();
 
         for destination_square in group.into_iter() {
