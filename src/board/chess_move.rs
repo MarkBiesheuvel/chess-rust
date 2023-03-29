@@ -30,6 +30,7 @@ pub struct ChessMove {
     destination_square: Square,
     status: MoveStatus,
 }
+
 impl ChessMove {
     pub fn new(
         piece: Piece, origin_square: Square, action: Action, destination_square: Square, status: MoveStatus,
@@ -59,6 +60,7 @@ impl ChessMove {
         &self.destination_square
     }
 }
+
 impl fmt::Display for ChessMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Long algebraic notation

@@ -1,38 +1,39 @@
 // Absolute imports within crate
 use crate::board::{Board, CastlingAvailability, PiecePlacement, Square};
 use crate::piece::{Color, Kind, Piece};
+
 // Relative imports of sub modules
-use field_iterator::FieldIterator;
 pub use parse_error::ParseError;
-mod field_iterator;
 mod parse_error;
+
+// TODO: implement a function on Iterator which returns a parse error
 
 pub fn parse_forsyth_edwards_notation(record: &str) -> Result<Board, ParseError> {
     // Deconstruct specification into the different fields
-    let mut field_iterator = FieldIterator::new(record);
+    let mut fields = record.split_whitespace();
 
     // Collect all the pieces
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let piece_placement = parse_piece_placement(field)?;
 
     // Detect active color
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let active_color = parse_active_color(field)?;
 
     // Collect all castling options
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let castling_availability = parse_castling_availability(field)?;
 
     // Detect en passant target square
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let en_passant_target = parse_en_passant_target_square(field)?;
 
     // Detect halfmove clock
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let halfmove_clock = parse_number(field)?;
 
     // Detect fullmove number
-    let field = field_iterator.next()?;
+    let field = fields.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
     let fullmove_number = parse_number(field)?;
 
     Ok(Board::new(
@@ -96,8 +97,10 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<PiecePlacement, 
                 // Create a new square and piece
                 let square = Square::new(file, rank);
                 let piece = parse_piece(character)?;
+
                 // Place piece on a square
                 piece_placement.insert(square, piece);
+
                 // Increase file count
                 file += 1;
             }
@@ -114,37 +117,46 @@ fn parse_piece_placement(piece_placement_field: &str) -> Result<PiecePlacement, 
 
 fn parse_piece(character: char) -> Result<Piece, ParseError> {
     // Return new piece
-    match character {
-        'B' => Ok(Piece::new(Color::White, Kind::Bishop)),
-        'b' => Ok(Piece::new(Color::Black, Kind::Bishop)),
-        'K' => Ok(Piece::new(Color::White, Kind::King)),
-        'k' => Ok(Piece::new(Color::Black, Kind::King)),
-        'N' => Ok(Piece::new(Color::White, Kind::Knight)),
-        'n' => Ok(Piece::new(Color::Black, Kind::Knight)),
-        'P' => Ok(Piece::new(Color::White, Kind::Pawn)),
-        'p' => Ok(Piece::new(Color::Black, Kind::Pawn)),
-        'Q' => Ok(Piece::new(Color::White, Kind::Queen)),
-        'q' => Ok(Piece::new(Color::Black, Kind::Queen)),
-        'R' => Ok(Piece::new(Color::White, Kind::Rook)),
-        'r' => Ok(Piece::new(Color::Black, Kind::Rook)),
-        _ => Err(ParseError::InvalidPiece(character)),
-    }
+    let piece = match character {
+        'B' => Piece::new(Color::White, Kind::Bishop),
+        'b' => Piece::new(Color::Black, Kind::Bishop),
+        'K' => Piece::new(Color::White, Kind::King),
+        'k' => Piece::new(Color::Black, Kind::King),
+        'N' => Piece::new(Color::White, Kind::Knight),
+        'n' => Piece::new(Color::Black, Kind::Knight),
+        'P' => Piece::new(Color::White, Kind::Pawn),
+        'p' => Piece::new(Color::Black, Kind::Pawn),
+        'Q' => Piece::new(Color::White, Kind::Queen),
+        'q' => Piece::new(Color::Black, Kind::Queen),
+        'R' => Piece::new(Color::White, Kind::Rook),
+        'r' => Piece::new(Color::Black, Kind::Rook),
+        _ => {
+            return Err(ParseError::InvalidPiece(character));
+        }
+    };
+
+    Ok(piece)
 }
 
 fn parse_active_color(active_color_field: &str) -> Result<Color, ParseError> {
     // Detect whether it is the turn of black or white
-    match active_color_field.chars().nth(0) {
-        Some(character) => match character {
-            // Blacks turn to move
-            'b' => Ok(Color::Black),
-            // Whites turn to move
-            'w' => Ok(Color::White),
-            // Invalid character
-            _ => Err(ParseError::InvalidColor(character)),
-        },
-        // End of specification reached too early
-        None => Err(ParseError::UnexpectedEnd),
-    }
+    let character = active_color_field
+        .chars()
+        .nth(0)
+        .ok_or_else(|| ParseError::UnexpectedEnd)?;
+
+    let color = match character {
+        // Blacks turn to move
+        'b' => Color::Black,
+        // Whites turn to move
+        'w' => Color::White,
+        // Invalid character
+        _ => {
+            return Err(ParseError::InvalidColor(character));
+        }
+    };
+
+    Ok(color)
 }
 
 fn parse_castling_availability(castling_availability_field: &str) -> Result<CastlingAvailability, ParseError> {
@@ -190,62 +202,60 @@ fn parse_en_passant_target_square(en_passant_target_square_field: &str) -> Resul
     // Detect the target square for en passant
     let mut characters = en_passant_target_square_field.chars();
 
-    let first_character = characters.next();
-    let second_character = characters.next();
+    let first_character = characters.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
 
     // Handle special case, no en passant
-    if first_character == Some('-') {
+    if first_character == '-' {
         return Ok(None);
     }
 
+    let second_character = characters.next().ok_or_else(|| ParseError::UnexpectedEnd)?;
+
     // Expecting valid file and rank now
-    let file = parse_en_passant_target_file(first_character)?;
-    let rank = parse_en_passant_target_rank(second_character)?;
+    let file = parse_file(first_character)?;
+    let rank = parse_rank(second_character)?;
 
     Ok(Some(Square::new(file, rank)))
 }
 
-fn parse_en_passant_target_file(character: Option<char>) -> Result<i8, ParseError> {
-    match character {
-        Some(file) => match file {
-            'a' => Ok(1),
-            'b' => Ok(2),
-            'c' => Ok(3),
-            'd' => Ok(4),
-            'e' => Ok(5),
-            'f' => Ok(6),
-            'g' => Ok(7),
-            'h' => Ok(8),
+fn parse_file(character: char) -> Result<i8, ParseError> {
+    let file = match character {
+        'a' => 1,
+        'b' => 2,
+        'c' => 3,
+        'd' => 4,
+        'e' => 5,
+        'f' => 6,
+        'g' => 7,
+        'h' => 8,
+        _ => {
             // Any other character is error
-            _ => Err(ParseError::InvalidFile(file)),
-        },
-        // End of specification reached too early
-        None => Err(ParseError::UnexpectedEnd),
-    }
+            return Err(ParseError::InvalidFile(character));
+        }
+    };
+
+    Ok(file)
 }
 
-fn parse_en_passant_target_rank(character: Option<char>) -> Result<i8, ParseError> {
-    match character {
-        Some(rank) => match rank {
-            '1' => Ok(1),
-            '2' => Ok(2),
-            '3' => Ok(3),
-            '4' => Ok(4),
-            '5' => Ok(5),
-            '6' => Ok(6),
-            '7' => Ok(7),
-            '8' => Ok(8),
+fn parse_rank(character: char) -> Result<i8, ParseError> {
+    let rank = match character {
+        '1' => 1,
+        '2' => 2,
+        '3' => 3,
+        '4' => 4,
+        '5' => 5,
+        '6' => 6,
+        '7' => 7,
+        '8' => 8,
+        _ => {
             // Any other character is error
-            _ => Err(ParseError::InvalidRank(rank)),
-        },
-        // End of specification reached too early
-        None => Err(ParseError::UnexpectedEnd),
-    }
+            return Err(ParseError::InvalidRank(character));
+        }
+    };
+
+    Ok(rank)
 }
 
 fn parse_number(field: &str) -> Result<u16, ParseError> {
-    match field.parse::<u16>() {
-        Ok(number) => Ok(number),
-        Err(_) => Err(ParseError::InvalidNumber),
-    }
+    field.parse().map_err(|_| ParseError::InvalidNumber)
 }

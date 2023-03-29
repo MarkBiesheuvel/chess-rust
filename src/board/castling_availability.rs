@@ -10,6 +10,12 @@ pub struct CastlingAvailability {
     black_queenside: bool,
 }
 
+impl Default for CastlingAvailability {
+    fn default() -> Self {
+        CastlingAvailability::new(true, true, true, true)
+    }
+}
+
 impl CastlingAvailability {
     pub fn new(
         white_kingside: bool, white_queenside: bool, black_kingside: bool, black_queenside: bool,
@@ -20,10 +26,6 @@ impl CastlingAvailability {
             black_kingside,
             black_queenside,
         }
-    }
-
-    pub fn default() -> Self {
-        CastlingAvailability::new(true, true, true, true)
     }
 
     pub fn is_short_castle_available(&self, color: &piece::Color) -> bool {

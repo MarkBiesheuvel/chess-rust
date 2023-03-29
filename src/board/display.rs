@@ -24,11 +24,17 @@ impl fmt::Display for Board {
             for file in 1..=8 {
                 // Write piece if it exists
                 let square = Square::new(file, rank);
-                let square = match self.piece_placement.get(&square) {
-                    Some(piece) => piece.symbol(),
-                    None => SQUARE_EMPTY,
+
+                // Find piece on square
+                match self.piece_placement.get(&square) {
+                    Some(piece) => {
+                        write!(f, "{}", piece)?;
+                    }
+                    None => {
+                        write!(f, "{}", SQUARE_EMPTY)?;
+                    }
                 };
-                write!(f, "{}", square)?;
+
                 // Write columns separator
                 if file < 8 {
                     write!(f, "{}", COLUMN_SEPARATOR___)?;

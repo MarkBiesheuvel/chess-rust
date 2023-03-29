@@ -33,6 +33,7 @@ pub struct Square {
     file: File,
     rank: Rank,
 }
+
 impl Square {
     fn is_valid_file(file: File) -> bool {
         1 <= file && file <= 8
@@ -135,6 +136,7 @@ impl Square {
         self.create_line_of_squares(-1, -1)
     }
 }
+
 impl fmt::Display for Square {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let file = match self.file {
