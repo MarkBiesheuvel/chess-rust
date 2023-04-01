@@ -5,7 +5,6 @@ use std::fmt;
 pub use color::Color;
 pub use kind::Kind;
 mod color;
-mod kind;
 
 #[derive(Debug, Clone)]
 pub struct Piece {

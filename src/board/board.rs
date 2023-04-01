@@ -14,7 +14,6 @@ mod chess_move;
 mod display;
 mod offset;
 mod square;
-mod types;
 
 // Enum to indicate whether a square is taken by no-one, by the active color or by the opposite color
 enum OccupiedBy {
