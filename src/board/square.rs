@@ -5,7 +5,7 @@ use std::{fmt, ops};
 use super::{File, Offset, Rank};
 
 /// A single square on the chess board
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct Square {
     file: File,
     rank: Rank,
@@ -74,14 +74,11 @@ impl ops::Add<Offset> for Square {
     ///
     /// // Make a knight move to f6
     /// let offset = Offset::new(-1 , -2);
-    /// let desination_square = starting_square + offset;
-    /// assert_eq!(desination_square.to_string(), "f6");
+    /// let destination_square = starting_square + offset;
+    /// assert_eq!(destination_square.to_string(), "f6");
     /// ```
     fn add(self, offset: Offset) -> Self::Output {
-        Square {
-            file: self.file + offset.file(),
-            rank: self.rank + offset.rank(),
-        }
+        Square::new(self.file + offset.file(), self.rank + offset.rank())
     }
 }
 

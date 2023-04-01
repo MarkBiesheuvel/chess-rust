@@ -1,10 +1,10 @@
 // External imports
-use std::fmt;
+use std::{fmt, ops};
 
 /// Offset on the chess board
 ///
 /// Can be used to add to existing squares
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Offset {
     file: i8,
     rank: i8,
@@ -33,6 +33,14 @@ impl Offset {
     /// Get the rank of this Offset
     pub fn rank(&self) -> i8 {
         self.rank
+    }
+}
+
+impl ops::Mul<i8> for Offset {
+    type Output = Offset;
+
+    fn mul(self, factor: i8) -> Self::Output {
+        Offset::new(self.file * factor, self.rank * factor)
     }
 }
 

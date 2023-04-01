@@ -12,7 +12,7 @@ use std::{fmt, ops};
 /// let file = File::from(2);
 /// assert_eq!(file.to_string(), "b");
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct File(i8);
 
 impl From<i8> for File {

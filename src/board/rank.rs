@@ -12,7 +12,7 @@ use std::{fmt, ops};
 /// let rank = Rank::from(7);
 /// assert_eq!(rank.to_string(), "7");
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct Rank(i8);
 
 impl From<i8> for Rank {
