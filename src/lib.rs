@@ -5,5 +5,5 @@
 mod macros;
 
 pub mod board;
-// mod parser;
+mod parser;
 pub mod piece;

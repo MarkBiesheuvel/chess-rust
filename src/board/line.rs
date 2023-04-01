@@ -8,7 +8,7 @@ use super::{Offset, Square};
 /// use chess::board::{Square, Offset, Line};
 ///
 /// // Start at c1 and move like a bishop
-/// let origin = Square::from((3, 1));
+/// let origin = "c1".parse()?;
 /// let direction = Offset::new(1, 1);
 /// let line = Line::new(origin, direction);
 ///
@@ -19,6 +19,8 @@ use super::{Offset, Square};
 /// assert_eq!(iter.next().unwrap().to_string(), "f4");
 /// assert_eq!(iter.next().unwrap().to_string(), "g5");
 /// assert_eq!(iter.next().unwrap().to_string(), "h6");
+///
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Line {

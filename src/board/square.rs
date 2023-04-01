@@ -1,8 +1,9 @@
 // External imports
-use std::{fmt, ops};
+use std::{fmt, ops, str};
 
 // Imports from super
 use super::{File, Offset, Rank};
+use crate::parser::ParseError;
 
 /// A single square on the chess board
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
@@ -56,6 +57,64 @@ where
     /// ```
     fn from((file, rank): (F, R)) -> Self {
         Square::new(file.into(), rank.into())
+    }
+}
+
+impl str::FromStr for Square {
+    type Err = ParseError;
+
+    /// Parse string as Square
+    ///
+    /// ## Examples
+    /// ```
+    /// use chess::board::Square;
+    ///
+    /// // The e2 square
+    /// let text = "e2";
+    /// let square = text.parse::<Square>()?;
+    ///
+    /// assert_eq!(square.to_string(), text);
+    ///
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        // Split up the string into individual characters
+        let mut characters = string.chars();
+
+        let first_character = characters.next().ok_or(ParseError::UnexpectedEnd)?;
+        let file = match first_character {
+            'a' => 1,
+            'b' => 2,
+            'c' => 3,
+            'd' => 4,
+            'e' => 5,
+            'f' => 6,
+            'g' => 7,
+            'h' => 8,
+            _ => {
+                // Any other character is error
+                return Err(ParseError::InvalidFile(first_character));
+            }
+        };
+
+        let second_character = characters.next().ok_or(ParseError::UnexpectedEnd)?;
+        let rank = match second_character {
+            '1' => 1,
+            '2' => 2,
+            '3' => 3,
+            '4' => 4,
+            '5' => 5,
+            '6' => 6,
+            '7' => 7,
+            '8' => 8,
+            _ => {
+                // Any other character is error
+                return Err(ParseError::InvalidRank(second_character));
+            }
+        };
+
+        let square = Square::from((file, rank));
+        Ok(square)
     }
 }
 
