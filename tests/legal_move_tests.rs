@@ -1,5 +1,4 @@
 use chess::board::{Action, Board};
-use chess::piece::Kind;
 
 #[test]
 fn valid_record_end_game() {
@@ -32,38 +31,31 @@ fn valid_record_end_game() {
 #[test]
 fn special_moves_allowed() {
     // Since FEN break the spell checker, turn it of for the next line - cspell:disable-next
-    let result = Board::forsyth_edwards_notation("rnbqkbnr/pp2p1pp/8/1p1pPp2/8/5N2/PPPP1PPP/RNBQK2R w KQkq f6 0 5");
+    let board = Board::forsyth_edwards_notation("rnbqkbnr/pp2p1pp/8/1p1pPp2/8/5N2/PPPP1PPP/RNBQK2R w KQkq f6 0 5")
+        .expect("This should be a valid record");
 
-    // This is a valid record
-    match result {
-        Ok(board) => {
-            // (2+2+2+2+2+0+2+2) =  14 pawn moves (one of which is en passant)
-            //               (0) =  0 bishop moves
-            //             (0+2) =   2 rook moves
-            //               (3) =   3 king moves (one of which is short castle)
-            //               (1) =   1 queen move
-            //             (2+4) =   6 knight moves
-            //                total 26 moves
-            assert_eq!(board.legal_moves().len(), 26);
+    // (2+2+2+2+2+0+2+2) =  14 pawn moves (one of which is en passant)
+    //               (0) =  0 bishop moves
+    //             (0+2) =   2 rook moves
+    //               (3) =   3 king moves (one of which is short castle)
+    //               (1) =   1 queen move
+    //             (2+4) =   6 knight moves
+    //                total 26 moves
+    assert_eq!(board.legal_moves().len(), 26);
 
-            // One of the moves is en passant
-            let any_en_passant = board
-                .legal_moves()
-                .into_iter()
-                .any(|chess_move| *chess_move.action() == Action::EnPassant);
-            assert!(any_en_passant);
+    // One of the moves is en passant
+    let any_en_passant = board
+        .legal_moves()
+        .into_iter()
+        .any(|chess_move| chess_move.action() == &Action::EnPassant);
+    assert!(any_en_passant);
 
-            // One of the moves is short castle
-            let any_short_castle = board
-                .legal_moves()
-                .into_iter()
-                .any(|chess_move| *chess_move.action() == Action::ShortCastle);
-            assert!(any_short_castle);
-        }
-        Err(_) => {
-            assert!(false);
-        }
-    };
+    // One of the moves is short castle
+    let any_short_castle = board
+        .legal_moves()
+        .into_iter()
+        .any(|chess_move| chess_move.action() == &Action::ShortCastle);
+    assert!(any_short_castle);
 }
 
 #[test]
@@ -73,23 +65,13 @@ fn starting_position() {
 
     // Should start with 32 pieces on the board
     assert_eq!(board.pieces().len(), 32);
+
     // Should start with 16 white pieces
     assert_eq!(board.white_pieces().len(), 16);
+
     // Should start with 16 black pieces
     assert_eq!(board.black_pieces().len(), 16);
 
     // (8 pawns × 2 moves) + (2 knights × 2 moves) = 20 moves
     assert_eq!(board.legal_moves().len(), 20);
-
-    // Calculate the relative value of all the pieces (except the king)
-    // TODO: move to separate test file for evaluation tests
-    let total_value = board
-        .white_pieces()
-        .into_iter()
-        .filter(|piece| *piece.kind() != Kind::King)
-        .map(|piece| (*piece).kind().relative_value())
-        .sum::<f32>();
-
-    // Take floating point erros into account
-    assert!(41.5 < total_value && total_value < 41.53);
 }
