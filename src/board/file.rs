@@ -21,7 +21,7 @@ impl From<i8> for File {
     }
 }
 
-impl ops::Add<i8> for File {
+impl ops::Add<i8> for &File {
     type Output = File;
 
     fn add(self, offset: i8) -> Self::Output {

@@ -6,7 +6,7 @@ use super::{File, Offset, Rank};
 use crate::parser::ParseError;
 
 /// A single square on the chess board
-#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Square {
     file: File,
     rank: Rank,
@@ -118,7 +118,7 @@ impl str::FromStr for Square {
     }
 }
 
-impl ops::Add<Offset> for Square {
+impl ops::Add<Offset> for &Square {
     type Output = Square;
 
     /// Add an offset to a square
@@ -133,11 +133,11 @@ impl ops::Add<Offset> for Square {
     ///
     /// // Make a knight move to f6
     /// let offset = Offset::new(-1 , -2);
-    /// let destination_square = starting_square + offset;
+    /// let destination_square = &starting_square + offset;
     /// assert_eq!(destination_square.to_string(), "f6");
     /// ```
     fn add(self, offset: Offset) -> Self::Output {
-        Square::new(self.file + offset.file(), self.rank + offset.rank())
+        Square::new(&self.file + offset.file(), &self.rank + offset.rank())
     }
 }
 

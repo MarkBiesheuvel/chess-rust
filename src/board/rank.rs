@@ -21,7 +21,7 @@ impl From<i8> for Rank {
     }
 }
 
-impl ops::Add<i8> for Rank {
+impl ops::Add<i8> for &Rank {
     type Output = Rank;
 
     fn add(self, offset: i8) -> Self::Output {
