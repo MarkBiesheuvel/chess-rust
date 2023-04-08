@@ -2,14 +2,14 @@
 
 pub use direction::Direction;
 pub use file::File;
-pub use line::Line;
 pub use offset::Offset;
 pub use rank::Rank;
 pub use square::Square;
+pub use square_iterator::SquareIterator;
 
 mod direction;
 mod file;
-mod line;
 mod offset;
 mod rank;
 mod square;
+mod square_iterator;

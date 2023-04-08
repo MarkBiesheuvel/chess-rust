@@ -4,5 +4,6 @@
         "halfmove",
         "kingside",
         "queenside"
-    ]
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false
 }
