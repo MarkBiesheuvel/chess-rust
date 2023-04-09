@@ -1,3 +1,6 @@
+// External imports
+use std::rc::Rc;
+
 // Imports from super
 use super::{Direction, Offset, Square};
 
@@ -41,12 +44,13 @@ impl SquareIterator {
     ///
     /// ## Examples
     /// ```
+    /// use std::rc::Rc;
     /// use chess::board::{Direction, SquareIterator, Square};
     ///
     /// // Start at c1 and move like a bishop
     /// let origin = "c1".parse()?;
     /// let direction = Direction::DiagonalUpRight;
-    /// let mut iter = SquareIterator::from_direction(origin, direction);
+    /// let mut iter = SquareIterator::from_direction(Rc::new(origin), direction);
     ///
     /// // Line should contain these squares
     /// assert_eq!(iter.next().unwrap().to_string(), "d2");
@@ -57,10 +61,16 @@ impl SquareIterator {
     ///
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn from_direction(origin: Square, direction: Direction) -> SquareIterator {
+    pub fn from_direction(origin: Rc<Square>, direction: Direction) -> SquareIterator {
+        // Create reference counted variable
+        let direction = Rc::new(direction);
+
         let iter = (1..).map(move |i| {
-            let offset = Offset::from(&direction) * i;
-            &origin + offset
+            // Calculate offset for i
+            let offset = Offset::from(direction.as_ref()) * i;
+
+            // Return desitnation
+            origin.as_ref() + offset
         });
 
         SquareIterator::new(iter)

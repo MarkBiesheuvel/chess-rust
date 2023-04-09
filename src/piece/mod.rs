@@ -2,4 +2,5 @@
 
 pub use color::Color;
 
+pub mod behavior;
 mod color;
