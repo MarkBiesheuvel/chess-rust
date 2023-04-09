@@ -24,9 +24,9 @@ impl SquareIterator {
     /// let mut iter = SquareIterator::from_single_offset(origin, offset);
     ///
     /// // Line should contain only one square
-    /// assert_eq!(iter.next().unwrap().to_string(), "c6");
+    /// assert_eq!(iter.next(), "c6".parse().ok());
     /// assert_eq!(iter.next(), None);
-    ///
+    /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn from_single_offset(origin: Square, offset: Offset) -> SquareIterator {
@@ -49,16 +49,17 @@ impl SquareIterator {
     ///
     /// // Start at c1 and move like a bishop
     /// let origin = "c1".parse()?;
+    /// let origin = Rc::new(origin);
     /// let direction = Direction::DiagonalRightUp;
-    /// let mut iter = SquareIterator::from_direction(Rc::new(origin), direction);
+    /// let mut iter = SquareIterator::from_direction(origin, direction);
     ///
     /// // Line should contain these squares
-    /// assert_eq!(iter.next().unwrap().to_string(), "d2");
-    /// assert_eq!(iter.next().unwrap().to_string(), "e3");
-    /// assert_eq!(iter.next().unwrap().to_string(), "f4");
-    /// assert_eq!(iter.next().unwrap().to_string(), "g5");
-    /// assert_eq!(iter.next().unwrap().to_string(), "h6");
-    ///
+    /// assert_eq!(iter.next(), "d2".parse().ok());
+    /// assert_eq!(iter.next(), "e3".parse().ok());
+    /// assert_eq!(iter.next(), "f4".parse().ok());
+    /// assert_eq!(iter.next(), "g5".parse().ok());
+    /// assert_eq!(iter.next(), "h6".parse().ok());
+    /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn from_direction(origin: Rc<Square>, direction: Direction) -> SquareIterator {
@@ -74,6 +75,32 @@ impl SquareIterator {
         });
 
         SquareIterator::new(iter)
+    }
+
+    /// Return a new SquareIterator with a hard limit
+    ///
+    /// This is useful for pawn moves (1 or 2 forward), or king moves (1 in any direction)
+    ///
+    /// ## Examples
+    /// ```
+    /// use std::rc::Rc;
+    /// use chess::board::{Direction, SquareIterator, Square};
+    ///
+    /// // Start at e2 and move like a pawn on the first turn
+    /// let origin = "e2".parse()?;
+    /// let origin = Rc::new(origin);
+    /// let direction = Direction::VerticalUp;
+    /// let mut iter = SquareIterator::from_direction(origin, direction).limit(2);
+    ///
+    /// // Line should contain these squares
+    /// assert_eq!(iter.next(), "e3".parse().ok());
+    /// assert_eq!(iter.next(), "e4".parse().ok());
+    /// assert_eq!(iter.next(), None);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn limit(self, limit: usize) -> SquareIterator {
+        SquareIterator::new(self.0.take(limit))
     }
 }
 

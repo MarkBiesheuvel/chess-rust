@@ -56,8 +56,8 @@ impl PieceBehavior for Queen {
 
     fn symbol(color: Color) -> char {
         match color {
-            Color::Black => 'b',
-            Color::White => 'B',
+            Color::Black => 'q',
+            Color::White => 'Q',
         }
     }
 }
