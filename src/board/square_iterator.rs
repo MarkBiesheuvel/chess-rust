@@ -49,7 +49,7 @@ impl SquareIterator {
     ///
     /// // Start at c1 and move like a bishop
     /// let origin = "c1".parse()?;
-    /// let direction = Direction::DiagonalUpRight;
+    /// let direction = Direction::DiagonalRightUp;
     /// let mut iter = SquareIterator::from_direction(Rc::new(origin), direction);
     ///
     /// // Line should contain these squares

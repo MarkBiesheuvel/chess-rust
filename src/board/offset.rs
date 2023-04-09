@@ -1,9 +1,6 @@
 // External imports
 use std::{fmt, ops};
 
-// Imports from super
-use super::Direction;
-
 /// Offset on the chess board
 ///
 /// Can be used to add to existing squares
@@ -38,33 +35,6 @@ impl Offset {
     /// Get the rank of this Offset
     pub fn rank(&self) -> i8 {
         self.rank
-    }
-}
-
-impl From<&Direction> for Offset {
-    /// Create new Offset from Direction
-    ///
-    /// ## Examples
-    /// ```
-    /// use chess::board::{Offset, Direction};
-    ///
-    /// // Create move one square down and one square to the right
-    /// let offset = Offset::from(&Direction::DiagonalDownRight);
-    ///
-    /// assert_eq!(offset.file(), 1);
-    /// assert_eq!(offset.rank(), -1);
-    /// ```
-    fn from(direction: &Direction) -> Self {
-        match direction {
-            Direction::HorizontalRight => Offset::new(1, 0),
-            Direction::HorizontalLeft => Offset::new(-1, 0),
-            Direction::VerticalUp => Offset::new(0, 1),
-            Direction::VerticalDown => Offset::new(0, -1),
-            Direction::DiagonalUpRight => Offset::new(1, 1),
-            Direction::DiagonalUpLeft => Offset::new(-1, 1),
-            Direction::DiagonalDownRight => Offset::new(1, -1),
-            Direction::DiagonalDownLeft => Offset::new(-1, -1),
-        }
     }
 }
 
