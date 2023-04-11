@@ -16,10 +16,12 @@ impl SquareIterator {
     ///
     /// ## Examples
     /// ```
+    /// use std::rc::Rc;
     /// use chess::board::{Offset, SquareIterator, Square};
     ///
     /// // Start at b8 and move like a knight
     /// let origin = "b8".parse()?;
+    /// let origin = Rc::new(origin);
     /// let offset = Offset::new(1, -2);
     /// let mut iter = SquareIterator::from_single_offset(origin, offset);
     ///
@@ -29,12 +31,12 @@ impl SquareIterator {
     /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn from_single_offset(origin: Square, offset: Offset) -> SquareIterator {
+    pub fn from_single_offset(origin: Rc<Square>, offset: Offset) -> SquareIterator {
         // Calculate destination
-        let destination = &origin + offset;
+        let destination = origin.as_ref() + offset;
 
         // Create list of length 1
-        let list = vec![destination];
+        let list = Vec::from([destination]);
 
         // Turn into iterator
         SquareIterator::new(list)
@@ -70,7 +72,7 @@ impl SquareIterator {
             // Calculate offset for i
             let offset = Offset::from(direction.as_ref()) * i;
 
-            // Return desitnation
+            // Calculate destination
             origin.as_ref() + offset
         });
 
