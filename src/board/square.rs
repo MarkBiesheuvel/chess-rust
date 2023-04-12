@@ -1,9 +1,11 @@
 // External imports
 use std::{fmt, ops, str};
 
+// Imports from crate
+use crate::parser::ParseError;
+
 // Imports from super
 use super::{File, Offset, Rank};
-use crate::parser::ParseError;
 
 /// A single square on the chess board
 #[derive(Debug, Eq, Hash, PartialEq)]
