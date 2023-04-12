@@ -8,7 +8,7 @@ use crate::piece::Color;
 /// Trait that implements the behavior of a chess piece
 pub trait PieceBehavior {
     /// Returns symbol of a piece
-    fn symbol(color: Color) -> char;
+    fn symbol(color: &Color) -> char;
 
     /// Starting from the origin, give a list of potential destination squares
     fn normal_moves(origin: Rc<Square>) -> Vec<SquareIterator>;

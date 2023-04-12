@@ -46,7 +46,7 @@ impl PieceBehavior for Bishop {
         ])
     }
 
-    fn symbol(color: Color) -> char {
+    fn symbol(color: &Color) -> char {
         match color {
             Color::Black => 'b',
             Color::White => 'B',

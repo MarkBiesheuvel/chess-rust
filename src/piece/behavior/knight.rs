@@ -56,7 +56,7 @@ impl PieceBehavior for Knight {
         ])
     }
 
-    fn symbol(color: Color) -> char {
+    fn symbol(color: &Color) -> char {
         match color {
             Color::Black => 'n',
             Color::White => 'N',

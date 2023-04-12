@@ -1,51 +1,61 @@
 // External imports
 use std::fmt;
+use std::marker::PhantomData;
 
-// Relative imports of sub modules
-pub use color::Color;
-pub use kind::Kind;
-mod color;
+// Imports from super
+use super::{behavior::PieceBehavior, Color};
 
-#[derive(Debug, Clone)]
-pub struct Piece {
+/// A chess piece
+///
+/// ## Examples
+/// ```
+/// use chess::piece::Piece;
+/// use chess::piece::Color::{Black, White};
+/// use chess::piece::behavior::{Bishop, King};
+///
+/// // Create some new pieces
+/// let white_bishop = Piece::new(White, Bishop);
+/// let black_king = Piece::new(Black, King);
+///
+/// // Tests
+/// assert_eq!(white_bishop.to_string(), "B");
+/// assert_eq!(black_king.to_string(), "k");
+/// ```
+#[derive(Debug, Eq, PartialEq)]
+pub struct Piece<T>
+where
+    T: PieceBehavior,
+{
     color: Color,
-    kind: Kind,
+    behavior: PhantomData<T>,
 }
 
-impl Piece {
-    pub fn new(color: Color, kind: Kind) -> Piece {
-        Piece { color, kind }
+impl<T> Piece<T>
+where
+    T: PieceBehavior,
+{
+    /// Create a new chess piece.
+    ///
+    /// The second parameter is solely used to infer the generic type.
+    pub fn new(color: Color, _behavior: T) -> Piece<T> {
+        Piece {
+            color,
+            behavior: PhantomData,
+        }
     }
 
+    /// Get the color of the piece
     pub fn color(&self) -> &Color {
         &self.color
     }
-
-    pub fn kind(&self) -> &Kind {
-        &self.kind
-    }
-
-    pub fn promote(&mut self, kind: Kind) {
-        self.kind = kind;
-    }
 }
 
-impl fmt::Display for Piece {
+impl<T> fmt::Display for Piece<T>
+where
+    T: PieceBehavior,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let symbol = match (&self.color, &self.kind) {
-            (Color::White, Kind::Bishop) => "♗",
-            (Color::Black, Kind::Bishop) => "♝",
-            (Color::White, Kind::King) => "♔",
-            (Color::Black, Kind::King) => "♚",
-            (Color::White, Kind::Knight) => "♘",
-            (Color::Black, Kind::Knight) => "♞",
-            (Color::White, Kind::Pawn) => "♙",
-            (Color::Black, Kind::Pawn) => "♟",
-            (Color::White, Kind::Queen) => "♕",
-            (Color::Black, Kind::Queen) => "♛",
-            (Color::White, Kind::Rook) => "♖",
-            (Color::Black, Kind::Rook) => "♜",
-        };
+        let symbol = T::symbol(self.color());
 
         write!(f, "{}", symbol)
     }

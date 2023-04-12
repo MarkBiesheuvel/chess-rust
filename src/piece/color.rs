@@ -2,7 +2,7 @@
 use crate::board::Rank;
 
 /// The two colors of pieces available: black and white
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Color {
     /// The black pieces, or the player playing with the black pieces
     Black,

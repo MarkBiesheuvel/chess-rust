@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
+#![allow(clippy::module_inception)]
 
 #[macro_use]
 mod macros;

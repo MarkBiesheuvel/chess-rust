@@ -46,7 +46,7 @@ impl PieceBehavior for Rook {
         ])
     }
 
-    fn symbol(color: Color) -> char {
+    fn symbol(color: &Color) -> char {
         match color {
             Color::Black => 'r',
             Color::White => 'R',

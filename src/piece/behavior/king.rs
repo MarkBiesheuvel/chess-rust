@@ -55,7 +55,7 @@ impl PieceBehavior for King {
         ])
     }
 
-    fn symbol(color: Color) -> char {
+    fn symbol(color: &Color) -> char {
         match color {
             Color::Black => 'k',
             Color::White => 'K',
