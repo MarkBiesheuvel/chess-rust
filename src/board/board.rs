@@ -3,14 +3,10 @@ use crate::parser::{self, ParseError};
 use crate::piece::{Color, Kind, Piece};
 // Relative imports of sub modules
 use board_error::BoardError;
-pub use castling_availability::CastlingAvailability;
-pub use chess_move::{Action, ChessMove, MoveStatus};
 pub use offset::Offset;
 pub use square::Square;
 pub use types::{File, MoveList, PiecePlacement, Rank, SquareList};
 mod board_error;
-mod castling_availability;
-mod chess_move;
 mod display;
 mod offset;
 mod square;
