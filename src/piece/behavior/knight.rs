@@ -22,7 +22,7 @@ use super::PieceBehavior;
 /// let origin = Rc::new(origin);
 ///
 /// // Calculate all destinations
-/// let destinations = Knight::normal_moves(origin)
+/// let destinations = Knight.target_squares(origin)
 ///     .into_iter()
 ///     .flatten()
 ///     .collect::<Vec<_>>();
@@ -40,10 +40,11 @@ use super::PieceBehavior;
 /// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+#[derive(Debug)]
 pub struct Knight;
 
 impl PieceBehavior for Knight {
-    fn normal_moves(origin: Rc<Square>) -> Vec<SquareIterator> {
+    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
         Vec::from([
             SquareIterator::from_single_offset(Rc::clone(&origin), Offset::new(1, 2)),
             SquareIterator::from_single_offset(Rc::clone(&origin), Offset::new(2, 1)),
@@ -56,7 +57,7 @@ impl PieceBehavior for Knight {
         ])
     }
 
-    fn symbol(color: &Color) -> char {
+    fn symbol(&self, color: &Color) -> char {
         match color {
             Color::Black => 'n',
             Color::White => 'N',

@@ -1,6 +1,5 @@
 // External imports
 use std::fmt;
-use std::marker::PhantomData;
 
 // Imports from super
 use super::{behavior::PieceBehavior, Color};
@@ -21,26 +20,20 @@ use super::{behavior::PieceBehavior, Color};
 /// assert_eq!(white_bishop.to_string(), "B");
 /// assert_eq!(black_king.to_string(), "k");
 /// ```
-#[derive(Debug, Eq, PartialEq)]
-pub struct Piece<T>
-where
-    T: PieceBehavior,
-{
+#[derive(Debug)]
+pub struct Piece {
     color: Color,
-    behavior: PhantomData<T>,
+    behavior: Box<dyn PieceBehavior>,
 }
 
-impl<T> Piece<T>
-where
-    T: PieceBehavior,
-{
+impl Piece {
     /// Create a new chess piece.
     ///
     /// The second parameter is solely used to infer the generic type.
-    pub fn new(color: Color, _behavior: T) -> Piece<T> {
+    pub fn new(color: Color, behavior: impl PieceBehavior + 'static) -> Piece {
         Piece {
             color,
-            behavior: PhantomData,
+            behavior: Box::new(behavior),
         }
     }
 
@@ -50,12 +43,9 @@ where
     }
 }
 
-impl<T> fmt::Display for Piece<T>
-where
-    T: PieceBehavior,
-{
+impl fmt::Display for Piece {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let symbol = T::symbol(self.color());
+        let symbol = self.behavior.symbol(self.color());
 
         write!(f, "{}", symbol)
     }

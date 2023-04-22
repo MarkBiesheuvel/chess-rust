@@ -21,7 +21,7 @@ use super::PieceBehavior;
 /// let origin = Rc::new(origin);
 ///
 /// // Calculate the first 4 destinations in any direction
-/// let destinations = Queen::normal_moves(origin)
+/// let destinations = Queen.target_squares(origin)
 ///     .into_iter()
 ///     .flat_map(|i| i.take(4))
 ///     .collect::<Vec<_>>();
@@ -38,10 +38,11 @@ use super::PieceBehavior;
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+#[derive(Debug)]
 pub struct Queen;
 
 impl PieceBehavior for Queen {
-    fn normal_moves(origin: Rc<Square>) -> Vec<SquareIterator> {
+    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
         Vec::from([
             SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalRight),
             SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalLeft),
@@ -54,7 +55,7 @@ impl PieceBehavior for Queen {
         ])
     }
 
-    fn symbol(color: &Color) -> char {
+    fn symbol(&self, color: &Color) -> char {
         match color {
             Color::Black => 'q',
             Color::White => 'Q',

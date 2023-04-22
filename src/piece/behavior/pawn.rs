@@ -21,7 +21,7 @@ use super::PieceBehavior;
 /// let origin = Rc::new(origin);
 ///
 /// // Calculate all destinations
-/// let destinations = Pawn::normal_moves(origin)
+/// let destinations = Pawn.target_squares(origin)
 ///     .into_iter()
 ///     .flatten()
 ///     .collect::<Vec<_>>();
@@ -32,15 +32,16 @@ use super::PieceBehavior;
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+#[derive(Debug)]
 pub struct Pawn;
 
 impl PieceBehavior for Pawn {
-    fn normal_moves(origin: Rc<Square>) -> Vec<SquareIterator> {
+    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
         // TODO: add color to determine correct direction
         Vec::from([SquareIterator::from_direction(Rc::clone(&origin), Direction::VerticalUp).limit(1)])
     }
 
-    fn symbol(color: &Color) -> char {
+    fn symbol(&self, color: &Color) -> char {
         match color {
             Color::Black => 'p',
             Color::White => 'P',

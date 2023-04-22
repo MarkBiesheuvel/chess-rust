@@ -21,7 +21,7 @@ use super::PieceBehavior;
 /// let origin = Rc::new(origin);
 ///
 /// // Calculate all destinations
-/// let destinations = King::normal_moves(origin)
+/// let destinations = King.target_squares(origin)
 ///     .into_iter()
 ///     .flatten()
 ///     .collect::<Vec<_>>();
@@ -39,10 +39,11 @@ use super::PieceBehavior;
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+#[derive(Debug)]
 pub struct King;
 
 impl PieceBehavior for King {
-    fn normal_moves(origin: Rc<Square>) -> Vec<SquareIterator> {
+    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
         Vec::from([
             SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalRight).limit(1),
             SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalLeft).limit(1),
@@ -55,7 +56,7 @@ impl PieceBehavior for King {
         ])
     }
 
-    fn symbol(color: &Color) -> char {
+    fn symbol(&self, color: &Color) -> char {
         match color {
             Color::Black => 'k',
             Color::White => 'K',
