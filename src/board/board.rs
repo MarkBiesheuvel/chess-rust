@@ -6,24 +6,22 @@ use std::fmt;
 use crate::piece::{behavior::*, Color, Piece};
 
 // Imports from super
-use super::{Square, SquareStatus};
+use super::{Square, SquareNotation::*, SquareStatus};
 
 /// Chess board consisting of N×N squares
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
-/// use chess::board::{Board, Square, SquareStatus};
+/// use chess::board::{Board, Square, SquareStatus, SquareNotation::*};
 /// use chess::piece::Color::*;
 ///
 /// // Create a chess board with the default starting position
 /// let board = Board::starting_position();
-/// let square = Square::from_str("c7")?;
+/// let square = Square::from(C7);
 ///
 /// // From white's perspective, the c7 square is taken by the opposite color
 /// assert_eq!(board.status(&square, &White), SquareStatus::TakenByOpposite);
-/// #
-/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct Board {
@@ -48,41 +46,41 @@ impl Board {
         // Define pieces as an array
         let pieces = [
             // 1st rank
-            Piece::new((1, 1), White, Rook),
-            Piece::new((2, 1), White, Knight),
-            Piece::new((3, 1), White, Bishop),
-            Piece::new((4, 1), White, Queen),
-            Piece::new((5, 1), White, King),
-            Piece::new((6, 1), White, Bishop),
-            Piece::new((7, 1), White, Knight),
-            Piece::new((8, 1), White, Rook),
+            Piece::new(A1, White, Rook),
+            Piece::new(B1, White, Knight),
+            Piece::new(C1, White, Bishop),
+            Piece::new(D1, White, Queen),
+            Piece::new(E1, White, King),
+            Piece::new(F1, White, Bishop),
+            Piece::new(G1, White, Knight),
+            Piece::new(H1, White, Rook),
             // 2nd rank
-            Piece::new((1, 2), White, Pawn),
-            Piece::new((2, 2), White, Pawn),
-            Piece::new((3, 2), White, Pawn),
-            Piece::new((4, 2), White, Pawn),
-            Piece::new((5, 2), White, Pawn),
-            Piece::new((6, 2), White, Pawn),
-            Piece::new((7, 2), White, Pawn),
-            Piece::new((8, 2), White, Pawn),
+            Piece::new(A2, White, Pawn),
+            Piece::new(B2, White, Pawn),
+            Piece::new(C2, White, Pawn),
+            Piece::new(D2, White, Pawn),
+            Piece::new(E2, White, Pawn),
+            Piece::new(F2, White, Pawn),
+            Piece::new(G2, White, Pawn),
+            Piece::new(H2, White, Pawn),
             // 7th rank
-            Piece::new((1, 7), Black, Pawn),
-            Piece::new((2, 7), Black, Pawn),
-            Piece::new((3, 7), Black, Pawn),
-            Piece::new((4, 7), Black, Pawn),
-            Piece::new((5, 7), Black, Pawn),
-            Piece::new((6, 7), Black, Pawn),
-            Piece::new((7, 7), Black, Pawn),
-            Piece::new((8, 7), Black, Pawn),
+            Piece::new(A7, Black, Pawn),
+            Piece::new(B7, Black, Pawn),
+            Piece::new(C7, Black, Pawn),
+            Piece::new(D7, Black, Pawn),
+            Piece::new(E7, Black, Pawn),
+            Piece::new(F7, Black, Pawn),
+            Piece::new(G7, Black, Pawn),
+            Piece::new(H7, Black, Pawn),
             // 8th rank
-            Piece::new((1, 8), Black, Rook),
-            Piece::new((2, 8), Black, Knight),
-            Piece::new((3, 8), Black, Bishop),
-            Piece::new((4, 8), Black, Queen),
-            Piece::new((5, 8), Black, King),
-            Piece::new((6, 8), Black, Bishop),
-            Piece::new((7, 8), Black, Knight),
-            Piece::new((8, 8), Black, Rook),
+            Piece::new(A8, Black, Rook),
+            Piece::new(B8, Black, Knight),
+            Piece::new(C8, Black, Bishop),
+            Piece::new(D8, Black, Queen),
+            Piece::new(E8, Black, King),
+            Piece::new(F8, Black, Bishop),
+            Piece::new(G8, Black, Knight),
+            Piece::new(H8, Black, Rook),
         ];
 
         // Map each piece to a tuple and collect as HashMap
