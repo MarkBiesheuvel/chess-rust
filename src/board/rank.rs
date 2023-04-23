@@ -1,4 +1,5 @@
 // External imports
+use core::cmp;
 use std::{fmt, ops};
 
 /// Represents a row of the chess board
@@ -13,10 +14,10 @@ use std::{fmt, ops};
 /// assert_eq!(rank.to_string(), "7");
 /// ```
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
-pub struct Rank(i8);
+pub struct Rank(u8);
 
-impl From<i8> for Rank {
-    fn from(value: i8) -> Self {
+impl From<u8> for Rank {
+    fn from(value: u8) -> Self {
         Self(value)
     }
 }
@@ -25,7 +26,20 @@ impl ops::Add<i8> for &Rank {
     type Output = Rank;
 
     fn add(self, offset: i8) -> Self::Output {
-        Rank(self.0 + offset)
+        // It is fine to use saturating_add since 0 is an invalid file anyways
+        Rank(self.0.saturating_add_signed(offset))
+    }
+}
+
+impl cmp::PartialEq<u8> for Rank {
+    fn eq(&self, other: &u8) -> bool {
+        self.0.eq(other)
+    }
+}
+
+impl cmp::PartialOrd<u8> for Rank {
+    fn partial_cmp(&self, other: &u8) -> Option<cmp::Ordering> {
+        self.0.partial_cmp(other)
     }
 }
 

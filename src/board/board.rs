@@ -12,53 +12,36 @@ use super::{Square, SquareStatus};
 ///
 /// ## Examples
 /// ```
+/// use std::str::FromStr;
 /// use chess::board::{Board, Square, SquareStatus};
 /// use chess::piece::Color::*;
 ///
 /// // Create a chess board with the default starting position
 /// let board = Board::starting_position();
-/// let square = "c7".parse()?;
+/// let square = Square::from_str("c7")?;
 ///
 /// // From white's perspective, the c7 square is taken by the opposite color
 /// assert_eq!(board.status(&square, &White), SquareStatus::TakenByOpposite);
+/// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
-pub struct Board<const N: u16> {
+pub struct Board {
     pieces: HashMap<Square, Piece>,
+    size: u8,
 }
 
-impl<const N: u16> Board<N> {
+impl Board {
     /// Initialize an empty chess board
-    pub fn empty() -> Board<N> {
+    pub fn empty(size: u8) -> Board {
         Board {
             pieces: HashMap::new(),
+            size,
         }
     }
 
-    /// Return whether the color is in check
-    pub fn is_in_check(&self, _color: &Color) -> bool {
-        todo!()
-    }
-
-    /// Return whether a square is empty, taken by same color, or taken by opposite color
-    pub fn status(&self, square: &Square, active_color: &Color) -> SquareStatus {
-        match self.pieces.get(square) {
-            Some(piece) => {
-                if piece.color() == active_color {
-                    SquareStatus::TakenBySame
-                } else {
-                    SquareStatus::TakenByOpposite
-                }
-            }
-            None => SquareStatus::Empty,
-        }
-    }
-}
-
-impl Board<8> {
     /// Initialize a 8×8 chess board with the starting position
-    pub fn starting_position() -> Board<8> {
+    pub fn starting_position() -> Board {
         // Allow for short name usage
         use Color::{Black, White};
 
@@ -108,7 +91,34 @@ impl Board<8> {
             .map(|piece| (piece.square(), piece))
             .collect();
 
-        Board { pieces }
+        Board { pieces, size: 8 }
+    }
+
+    /// Return whether the color is in check
+    pub fn is_in_check(&self, _color: &Color) -> bool {
+        todo!()
+    }
+
+    /// Return whether the square is valid for a board of this size
+    pub fn is_valid(&self, square: &Square) -> bool {
+        let file = square.file();
+        let rank = square.rank();
+
+        file >= 1 && file <= self.size && rank >= 1 && rank <= self.size
+    }
+
+    /// Return whether a square is empty, taken by same color, or taken by opposite color
+    pub fn status(&self, square: &Square, color: &Color) -> SquareStatus {
+        match self.pieces.get(square) {
+            Some(piece) => {
+                if piece.color() == color {
+                    SquareStatus::TakenBySame
+                } else {
+                    SquareStatus::TakenByOpposite
+                }
+            }
+            None => SquareStatus::Empty,
+        }
     }
 }
 
@@ -122,8 +132,12 @@ const COLUMN_SEPARATOR___: &str = " │ ";
 const COLUMN_RIGHT_BORDER: &str = " ┃\n";
 const SQUARE_EMPTY: &str = " ";
 
-impl fmt::Display for Board<8> {
+impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.size != 8 {
+            Err(fmt::Error)?;
+        }
+
         // Write top border of the board
         write!(f, "{}", ROW_TOP_BORDER___)?;
         // Iterate over rows (ranks)

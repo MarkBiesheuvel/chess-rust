@@ -1,9 +1,6 @@
-// External imports
-use std::rc::Rc;
-
 // Imports from crate
-use crate::board::{Direction, Square, SquareIterator};
-use crate::piece::Color;
+use crate::board::{Board, Direction, Square, SquareIterator};
+use crate::piece::{Color, Piece};
 
 // Imports from super
 use super::PieceBehavior;
@@ -12,40 +9,44 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::rc::Rc;
-/// use chess::piece::behavior::{Bishop, PieceBehavior};
-/// use chess::board::Square;
+/// use std::str::FromStr;
+/// use chess::board::{Board, Square};
+/// use chess::piece::{Piece, Color::*, behavior::*};
 ///
 /// // Start at the d4 square
-/// let origin = "d4".parse()?;
-/// let origin = Rc::new(origin);
+/// let square = Square::from_str("d4")?;
+/// let piece = Piece::new(square, White, Bishop);
+/// let board = Board::empty(8);
 ///
 /// // Calculate the first 4 destinations in any direction
-/// let destinations = Bishop.target_squares(origin)
-///     .into_iter()
-///     .flat_map(|i| i.take(4))
-///     .map(|s| s.to_string())
-///     .collect::<Vec<_>>();
+/// let destinations = Bishop.target_squares(&piece, &board);
 ///
 /// // Test a square in each direction
-/// assert!(destinations.iter().any(|s| s == "a1"));
-/// assert!(destinations.iter().any(|s| s == "b6"));
-/// assert!(destinations.iter().any(|s| s == "h8"));
-/// assert!(destinations.iter().any(|s| s == "e3"));
-///
+/// assert!(destinations.iter().any(|s| s.to_string() == "a1"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "b6"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "h8"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "e3"));
+/// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct Bishop;
 
 impl PieceBehavior for Bishop {
-    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
-        Vec::from([
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalRightUp),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalRightDown),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalLeftUp),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalLeftDown),
-        ])
+    fn target_squares(&self, piece: &Piece, board: &Board) -> Vec<Square> {
+        // Bishop has no limit when moving
+        let limit = None;
+
+        // Create lines in all four diagonal directions
+        let lines = [
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalRightUp),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalRightDown),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalLeftUp),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalLeftDown),
+        ];
+
+        // Flatten lines into single list
+        lines.into_iter().flatten().collect()
     }
 
     fn symbol(&self, color: &Color) -> char {

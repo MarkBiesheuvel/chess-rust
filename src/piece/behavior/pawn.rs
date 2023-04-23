@@ -1,9 +1,6 @@
-// External imports
-use std::rc::Rc;
-
 // Imports from crate
-use crate::board::{Direction, Square, SquareIterator};
-use crate::piece::Color;
+use crate::board::{Board, Direction, Square, SquareIterator};
+use crate::piece::{Color, Piece};
 
 // Imports from super
 use super::PieceBehavior;
@@ -12,34 +9,41 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::rc::Rc;
-/// use chess::piece::behavior::{Pawn, PieceBehavior};
-/// use chess::board::Square;
+/// use std::str::FromStr;
+/// use chess::board::{Board, Square};
+/// use chess::piece::{Piece, Color::*, behavior::*};
 ///
 /// // Start at the c4 square
-/// let origin = "c4".parse()?;
-/// let origin = Rc::new(origin);
+/// let square = Square::from_str("c4")?;
+/// let piece = Piece::new(square, White, Pawn);
+/// let board = Board::empty(8);
 ///
 /// // Calculate all destinations
-/// let destinations = Pawn.target_squares(origin)
-///     .into_iter()
-///     .flatten()
-///     .map(|s| s.to_string())
-///     .collect::<Vec<_>>();
+/// let destinations = Pawn.target_squares(&piece, &board);
 ///
 /// // Test all squares
 /// assert_eq!(destinations.len(), 1);
-/// assert!(destinations.iter().any(|s| s == "c5"));
-///
+/// assert!(destinations.iter().any(|s| s.to_string() == "c5"));
+/// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct Pawn;
 
 impl PieceBehavior for Pawn {
-    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
-        // TODO: add color to determine correct direction
-        Vec::from([SquareIterator::from_direction(Rc::clone(&origin), Direction::VerticalUp).limit(1)])
+    fn target_squares(&self, piece: &Piece, board: &Board) -> Vec<Square> {
+        // TODO: determine whether the Game allows for 2 squares forward
+        let limit = Some(1);
+
+        // Determine direction based on color
+        let direction = match piece.color() {
+            Color::Black => Direction::VerticalDown,
+            Color::White => Direction::VerticalUp,
+        };
+
+        // TODO: determine whether can capture
+        // TODO: determine whether the Game allows for en-passant
+        SquareIterator::from_direction(piece, board, limit, direction)
     }
 
     fn symbol(&self, color: &Color) -> char {

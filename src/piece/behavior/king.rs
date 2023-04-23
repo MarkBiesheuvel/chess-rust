@@ -1,9 +1,6 @@
-// External imports
-use std::rc::Rc;
-
 // Imports from crate
-use crate::board::{Direction, Square, SquareIterator};
-use crate::piece::Color;
+use crate::board::{Board, Direction, Square, SquareIterator};
+use crate::piece::{Color, Piece};
 
 // Imports from super
 use super::PieceBehavior;
@@ -12,49 +9,53 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::rc::Rc;
-/// use chess::piece::behavior::{King, PieceBehavior};
-/// use chess::board::Square;
+/// use std::str::FromStr;
+/// use chess::board::{Board, Square};
+/// use chess::piece::{Piece, Color::*, behavior::*};
 ///
 /// // Start at the e4 square
-/// let origin = "e4".parse()?;
-/// let origin = Rc::new(origin);
+/// let square = Square::from_str("e4")?;
+/// let piece = Piece::new(square, White, King);
+/// let board = Board::empty(8);
 ///
 /// // Calculate all destinations
-/// let destinations = King.target_squares(origin)
-///     .into_iter()
-///     .flatten()
-///     .map(|s| s.to_string())
-///     .collect::<Vec<_>>();
+/// let destinations = King.target_squares(&piece, &board);
 ///
 /// // Test all squares
 /// assert_eq!(destinations.len(), 8);
-/// assert!(destinations.iter().any(|s| s == "d5"));
-/// assert!(destinations.iter().any(|s| s == "e5"));
-/// assert!(destinations.iter().any(|s| s == "f5"));
-/// assert!(destinations.iter().any(|s| s == "d4"));
-/// assert!(destinations.iter().any(|s| s == "f4"));
-/// assert!(destinations.iter().any(|s| s == "d3"));
-/// assert!(destinations.iter().any(|s| s == "e3"));
-/// assert!(destinations.iter().any(|s| s == "f3"));
-///
+/// assert!(destinations.iter().any(|s| s.to_string() == "d5"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "e5"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "f5"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "d4"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "f4"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "d3"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "e3"));
+/// assert!(destinations.iter().any(|s| s.to_string() == "f3"));
+/// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct King;
 
 impl PieceBehavior for King {
-    fn target_squares(&self, origin: Rc<Square>) -> Vec<SquareIterator> {
-        Vec::from([
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalRight).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::HorizontalLeft).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::VerticalUp).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::VerticalDown).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalRightUp).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalRightDown).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalLeftUp).limit(1),
-            SquareIterator::from_direction(Rc::clone(&origin), Direction::DiagonalLeftDown).limit(1),
-        ])
+    fn target_squares(&self, piece: &Piece, board: &Board) -> Vec<Square> {
+        // King can only move 1 step at a time
+        let limit = Some(1);
+
+        // Create lines (of length 1) in all directions
+        let lines = [
+            SquareIterator::from_direction(piece, board, limit, Direction::HorizontalRight),
+            SquareIterator::from_direction(piece, board, limit, Direction::HorizontalLeft),
+            SquareIterator::from_direction(piece, board, limit, Direction::VerticalUp),
+            SquareIterator::from_direction(piece, board, limit, Direction::VerticalDown),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalRightUp),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalRightDown),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalLeftUp),
+            SquareIterator::from_direction(piece, board, limit, Direction::DiagonalLeftDown),
+        ];
+
+        // Flatten lines into single list
+        lines.into_iter().flatten().collect()
     }
 
     fn symbol(&self, color: &Color) -> char {

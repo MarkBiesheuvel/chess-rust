@@ -1,4 +1,5 @@
 // External imports
+use core::cmp;
 use std::{fmt, ops};
 
 /// Represents a column of the chess board
@@ -13,10 +14,10 @@ use std::{fmt, ops};
 /// assert_eq!(file.to_string(), "b");
 /// ```
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
-pub struct File(i8);
+pub struct File(u8);
 
-impl From<i8> for File {
-    fn from(value: i8) -> Self {
+impl From<u8> for File {
+    fn from(value: u8) -> Self {
         Self(value)
     }
 }
@@ -25,7 +26,20 @@ impl ops::Add<i8> for &File {
     type Output = File;
 
     fn add(self, offset: i8) -> Self::Output {
-        File(self.0 + offset)
+        // It is fine to use saturating_add since 0 is an invalid file anyways
+        File(self.0.saturating_add_signed(offset))
+    }
+}
+
+impl cmp::PartialEq<u8> for File {
+    fn eq(&self, other: &u8) -> bool {
+        self.0.eq(other)
+    }
+}
+
+impl cmp::PartialOrd<u8> for File {
+    fn partial_cmp(&self, other: &u8) -> Option<cmp::Ordering> {
+        self.0.partial_cmp(other)
     }
 }
 

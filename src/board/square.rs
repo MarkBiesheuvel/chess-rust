@@ -32,13 +32,15 @@ impl Square {
     }
 
     /// Get the file of this Square
-    pub fn file(&self) -> &File {
-        &self.file
+    pub fn file(&self) -> File {
+        // Performs a copy
+        self.file
     }
 
     /// Get the rank of this Square
-    pub fn rank(&self) -> &Rank {
-        &self.rank
+    pub fn rank(&self) -> Rank {
+        // Performs a copy
+        self.rank
     }
 }
 
@@ -120,7 +122,7 @@ impl str::FromStr for Square {
     }
 }
 
-impl ops::Add<Offset> for &Square {
+impl ops::Add<Offset> for Square {
     type Output = Square;
 
     /// Add an offset to a square
@@ -135,7 +137,7 @@ impl ops::Add<Offset> for &Square {
     ///
     /// // Make a knight move to f6
     /// let offset = Offset::new(-1 , -2);
-    /// let destination_square = &starting_square + offset;
+    /// let destination_square = starting_square + offset;
     /// assert_eq!(destination_square.to_string(), "f6");
     /// ```
     fn add(self, offset: Offset) -> Self::Output {

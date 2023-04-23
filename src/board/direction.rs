@@ -2,7 +2,7 @@
 use super::Offset;
 
 /// A direction to move on the chess board
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Direction {
     /// A vertical line that increases in file
     HorizontalRight,
@@ -22,7 +22,7 @@ pub enum Direction {
     DiagonalLeftDown,
 }
 
-impl From<&Direction> for Offset {
+impl From<Direction> for Offset {
     /// Create new Offset from Direction
     ///
     /// ## Examples
@@ -30,12 +30,12 @@ impl From<&Direction> for Offset {
     /// use chess::board::{Offset, Direction};
     ///
     /// // Create move one square down and one square to the right
-    /// let offset = Offset::from(&Direction::DiagonalRightDown);
+    /// let offset = Offset::from(Direction::DiagonalRightDown);
     ///
     /// assert_eq!(offset.file(), 1);
     /// assert_eq!(offset.rank(), -1);
     /// ```
-    fn from(direction: &Direction) -> Self {
+    fn from(direction: Direction) -> Self {
         match direction {
             Direction::HorizontalRight => Offset::new(1, 0),
             Direction::HorizontalLeft => Offset::new(-1, 0),

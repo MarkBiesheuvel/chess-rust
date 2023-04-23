@@ -38,7 +38,7 @@ impl Offset {
     }
 }
 
-impl ops::Mul<i8> for Offset {
+impl ops::Mul<u8> for Offset {
     type Output = Offset;
 
     /// Multiply an offset with a scalar
@@ -48,14 +48,15 @@ impl ops::Mul<i8> for Offset {
     /// use chess::board::{Offset, Direction};
     ///
     /// // Create move one square down
-    /// let offset = Offset::from(&Direction::VerticalDown);
+    /// let offset = Offset::from(Direction::VerticalDown);
     ///
     /// // Multipe offset with different numbers
     /// assert_eq!(offset, Offset::new(0, -1));
     /// assert_eq!(offset * 5, Offset::new(0, -5));
     /// assert_eq!(offset * 0, Offset::new(0, 0));
     /// ```
-    fn mul(self, factor: i8) -> Self::Output {
+    fn mul(self, factor: u8) -> Self::Output {
+        let factor = factor as i8;
         Offset::new(self.file * factor, self.rank * factor)
     }
 }
