@@ -1,4 +1,5 @@
 /// Enum to indicate whether a square is empty, or take by the same color or by the opposite color
+#[derive(Debug, PartialEq, Eq)]
 pub enum SquareStatus {
     /// The square is empty
     Empty,

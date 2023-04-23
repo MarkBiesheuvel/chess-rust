@@ -8,7 +8,7 @@ use crate::parser::ParseError;
 use super::{File, Offset, Rank};
 
 /// A single square on the chess board
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct Square {
     file: File,
     rank: Rank,
