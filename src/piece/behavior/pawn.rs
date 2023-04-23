@@ -24,11 +24,12 @@ use super::PieceBehavior;
 /// let destinations = Pawn.target_squares(origin)
 ///     .into_iter()
 ///     .flatten()
+///     .map(|s| s.to_string())
 ///     .collect::<Vec<_>>();
 ///
 /// // Test all squares
 /// assert_eq!(destinations.len(), 1);
-/// assert!(destinations.iter().any(|s| s.to_string() == "c5"));
+/// assert!(destinations.iter().any(|s| s == "c5"));
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```

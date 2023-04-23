@@ -24,18 +24,19 @@ use super::PieceBehavior;
 /// let destinations = King.target_squares(origin)
 ///     .into_iter()
 ///     .flatten()
+///     .map(|s| s.to_string())
 ///     .collect::<Vec<_>>();
 ///
 /// // Test all squares
 /// assert_eq!(destinations.len(), 8);
-/// assert!(destinations.iter().any(|s| s.to_string() == "d5"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e5"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "f5"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "f4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d3"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e3"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "f3"));
+/// assert!(destinations.iter().any(|s| s == "d5"));
+/// assert!(destinations.iter().any(|s| s == "e5"));
+/// assert!(destinations.iter().any(|s| s == "f5"));
+/// assert!(destinations.iter().any(|s| s == "d4"));
+/// assert!(destinations.iter().any(|s| s == "f4"));
+/// assert!(destinations.iter().any(|s| s == "d3"));
+/// assert!(destinations.iter().any(|s| s == "e3"));
+/// assert!(destinations.iter().any(|s| s == "f3"));
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```

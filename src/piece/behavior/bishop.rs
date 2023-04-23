@@ -24,13 +24,14 @@ use super::PieceBehavior;
 /// let destinations = Bishop.target_squares(origin)
 ///     .into_iter()
 ///     .flat_map(|i| i.take(4))
+///     .map(|s| s.to_string())
 ///     .collect::<Vec<_>>();
 ///
 /// // Test a square in each direction
-/// assert!(destinations.iter().any(|s| s.to_string() == "a1"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "b6"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "h8"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e3"));
+/// assert!(destinations.iter().any(|s| s == "a1"));
+/// assert!(destinations.iter().any(|s| s == "b6"));
+/// assert!(destinations.iter().any(|s| s == "h8"));
+/// assert!(destinations.iter().any(|s| s == "e3"));
 ///
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
