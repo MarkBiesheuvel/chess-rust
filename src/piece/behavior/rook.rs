@@ -9,25 +9,15 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::str::FromStr;
-/// use chess::board::{Board, Square};
+/// use chess::board::SquareNotation::*;
 /// use chess::piece::{Piece, Color::*, behavior::*};
 ///
-/// // Start at the d4 square
-/// let square = Square::from_str("d4")?;
-/// let piece = Piece::new(square, White, Rook);
-/// let board = Board::empty(8);
+/// // Create a new rook
+/// let rook = Piece::new(H8, Black, Rook);
 ///
-/// // Calculate the first 4 destinations in any direction
-/// let destinations = Rook.target_squares(&piece, &board);
-///
-/// // Test a square in each direction
-/// assert!(destinations.iter().any(|s| s.to_string() == "c4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d2"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "g4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d8"));
-/// #
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// // Assertions
+/// assert_eq!(rook.to_string(), "r");
+/// assert_eq!(rook.square().to_string(), "h8");
 /// ```
 #[derive(Debug)]
 pub struct Rook;
@@ -54,5 +44,30 @@ impl PieceBehavior for Rook {
             Color::Black => 'r',
             Color::White => 'R',
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::board::SquareNotation::*;
+
+    #[test]
+    fn test_d4() {
+        // Create empty 8×8 board
+        let board = Board::empty(8);
+
+        // Create rook on d4
+        let rook = Piece::new(D4, Color::Black, Rook);
+
+        // Calculate the target squares
+        let destinations = rook.target_squares(&board);
+
+        // Test a square in each direction
+        assert_eq!(destinations.len(), 14);
+        assert!(destinations.contains(&C4.into()));
+        assert!(destinations.contains(&D2.into()));
+        assert!(destinations.contains(&G4.into()));
+        assert!(destinations.contains(&D8.into()));
     }
 }

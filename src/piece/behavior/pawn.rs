@@ -9,23 +9,15 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::str::FromStr;
-/// use chess::board::{Board, Square};
+/// use chess::board::SquareNotation::*;
 /// use chess::piece::{Piece, Color::*, behavior::*};
 ///
-/// // Start at the c4 square
-/// let square = Square::from_str("c4")?;
-/// let piece = Piece::new(square, White, Pawn);
-/// let board = Board::empty(8);
+/// // Create a new pawn
+/// let pawn = Piece::new(A2, White, Pawn);
 ///
-/// // Calculate all destinations
-/// let destinations = Pawn.target_squares(&piece, &board);
-///
-/// // Test all squares
-/// assert_eq!(destinations.len(), 1);
-/// assert!(destinations.iter().any(|s| s.to_string() == "c5"));
-/// #
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// // Assertions
+/// assert_eq!(pawn.to_string(), "P");
+/// assert_eq!(pawn.square().to_string(), "a2");
 /// ```
 #[derive(Debug)]
 pub struct Pawn;
@@ -51,5 +43,43 @@ impl PieceBehavior for Pawn {
             Color::Black => 'p',
             Color::White => 'P',
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::board::SquareNotation::*;
+
+    #[test]
+    fn test_f4() {
+        // Create empty 8×8 board
+        let board = Board::empty(8);
+
+        // Create pawn on f4
+        let pawn = Piece::new(F4, Color::Black, Pawn);
+
+        // Calculate the target squares
+        let destinations = pawn.target_squares(&board);
+
+        // Test all target sqaures
+        assert_eq!(destinations.len(), 1);
+        assert!(destinations.contains(&F3.into()));
+    }
+
+    #[test]
+    fn test_c4() {
+        // Create empty 8×8 board
+        let board = Board::empty(8);
+
+        // Create pawn on c4
+        let pawn = Piece::new(C4, Color::White, Pawn);
+
+        // Calculate the target squares
+        let destinations = pawn.target_squares(&board);
+
+        // Test all target sqaures
+        assert_eq!(destinations.len(), 1);
+        assert!(destinations.contains(&C5.into()));
     }
 }

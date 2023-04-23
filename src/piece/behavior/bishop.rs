@@ -9,25 +9,15 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::str::FromStr;
-/// use chess::board::{Board, Square};
+/// use chess::board::SquareNotation::*;
 /// use chess::piece::{Piece, Color::*, behavior::*};
 ///
-/// // Start at the d4 square
-/// let square = Square::from_str("d4")?;
-/// let piece = Piece::new(square, White, Bishop);
-/// let board = Board::empty(8);
+/// // Create a new bishop
+/// let bishop = Piece::new(D4, White, Bishop);
 ///
-/// // Calculate the first 4 destinations in any direction
-/// let destinations = Bishop.target_squares(&piece, &board);
-///
-/// // Test a square in each direction
-/// assert!(destinations.iter().any(|s| s.to_string() == "a1"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "b6"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "h8"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e3"));
-/// #
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// // Assertions
+/// assert_eq!(bishop.to_string(), "B");
+/// assert_eq!(bishop.square().to_string(), "d4");
 /// ```
 #[derive(Debug)]
 pub struct Bishop;
@@ -54,5 +44,30 @@ impl PieceBehavior for Bishop {
             Color::Black => 'b',
             Color::White => 'B',
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::board::SquareNotation::*;
+
+    #[test]
+    fn test_d4() {
+        // Create empty 8×8 board
+        let board = Board::empty(8);
+
+        // Create bishop on d4
+        let bishop = Piece::new(D4, Color::White, Bishop);
+
+        // Calculate the target squares
+        let destinations = bishop.target_squares(&board);
+
+        // Test a square in each direction
+        assert_eq!(destinations.len(), 13);
+        assert!(destinations.contains(&A1.into()));
+        assert!(destinations.contains(&B6.into()));
+        assert!(destinations.contains(&H8.into()));
+        assert!(destinations.contains(&E3.into()));
     }
 }

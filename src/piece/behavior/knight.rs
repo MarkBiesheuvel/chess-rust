@@ -10,30 +10,15 @@ use super::PieceBehavior;
 ///
 /// ## Examples
 /// ```
-/// use std::str::FromStr;
-/// use chess::board::{Board, Square};
+/// use chess::board::SquareNotation::*;
 /// use chess::piece::{Piece, Color::*, behavior::*};
 ///
-/// // Start at the f3 square
-/// let square = Square::from_str("f3")?;
-/// let piece = Piece::new(square, White, Knight);
-/// let board = Board::empty(8);
+/// // Create a new knight
+/// let knight = Piece::new(B1, White, Knight);
 ///
-/// // Calculate all destinations
-/// let destinations = Knight.target_squares(&piece, &board);
-///
-/// // Test all squares
-/// assert_eq!(destinations.len(), 8);
-/// assert!(destinations.iter().any(|s| s.to_string() == "g5"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "h4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "h2"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "g1"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e1"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d2"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "d4"));
-/// assert!(destinations.iter().any(|s| s.to_string() == "e5"));
-/// #
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// // Assertions
+/// assert_eq!(knight.to_string(), "N");
+/// assert_eq!(knight.square().to_string(), "b1");
 /// ```
 #[derive(Debug)]
 pub struct Knight;
@@ -61,5 +46,34 @@ impl PieceBehavior for Knight {
             Color::Black => 'n',
             Color::White => 'N',
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::board::SquareNotation::*;
+
+    #[test]
+    fn test_f4() {
+        // Create empty 8×8 board
+        let board = Board::empty(8);
+
+        // Create knight on f3
+        let knight = Piece::new(F3, Color::White, Knight);
+
+        // Calculate the target squares
+        let destinations = knight.target_squares(&board);
+
+        // Test all target sqaures
+        assert_eq!(destinations.len(), 8);
+        assert!(destinations.contains(&G5.into()));
+        assert!(destinations.contains(&H4.into()));
+        assert!(destinations.contains(&H2.into()));
+        assert!(destinations.contains(&G1.into()));
+        assert!(destinations.contains(&E1.into()));
+        assert!(destinations.contains(&D2.into()));
+        assert!(destinations.contains(&D4.into()));
+        assert!(destinations.contains(&E5.into()));
     }
 }

@@ -2,7 +2,7 @@
 use std::fmt;
 
 // Imports from crate
-use crate::board::Square;
+use crate::board::{Board, Square};
 
 // Imports from super
 use super::{behavior::PieceBehavior, Color};
@@ -53,6 +53,11 @@ impl Piece {
     pub fn square(&self) -> Square {
         // This performs a copy
         self.square
+    }
+
+    /// Get a list of target squares
+    pub fn target_squares(&self, board: &Board) -> Vec<Square> {
+        self.behavior.target_squares(self, board)
     }
 }
 
