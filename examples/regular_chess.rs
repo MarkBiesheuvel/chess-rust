@@ -1,16 +1,10 @@
 use std::error::Error;
-use chess::piece::{Piece, Color::*, behavior::*};
+use chess::board::Board;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let white_knight = Piece::new((2, 1), White, Knight);
-    let black_queen = Piece::new((3, 3), Black, Queen);
-    
-    let collection = Vec::from([
-        white_knight,
-        black_queen,
-    ]);
+    let board = Board::starting_position();
 
-    dbg!(collection);
+    println!("{}", board);
 
     Ok(())
 }

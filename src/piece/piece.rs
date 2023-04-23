@@ -32,7 +32,11 @@ impl Piece {
     /// Create a new chess piece.
     ///
     /// The second parameter is solely used to infer the generic type.
-    pub fn new(square: impl Into<Square>, color: Color, behavior: impl PieceBehavior + 'static) -> Piece {
+    pub fn new<S, B>(square: S, color: Color, behavior: B) -> Piece
+    where
+        S: Into<Square>,
+        B: PieceBehavior + 'static,
+    {
         Piece {
             square: square.into(),
             color,
@@ -47,6 +51,7 @@ impl Piece {
 
     /// Get the square of the piece
     pub fn square(&self) -> Square {
+        // This performs a copy
         self.square
     }
 }
