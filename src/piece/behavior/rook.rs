@@ -16,7 +16,7 @@ use super::PieceBehavior;
 /// let rook = Piece::new(H8, Black, Rook);
 ///
 /// // Assertions
-/// assert_eq!(rook.to_string(), "r");
+/// assert_eq!(rook.board_representation(), 'r');
 /// assert_eq!(rook.square().to_string(), "h8");
 /// ```
 #[derive(Debug)]
@@ -39,11 +39,15 @@ impl PieceBehavior for Rook {
         lines.into_iter().flatten().collect()
     }
 
-    fn symbol(&self, color: &Color) -> char {
+    fn board_representation(&self, color: &Color) -> char {
         match color {
             Color::Black => 'r',
             Color::White => 'R',
         }
+    }
+
+    fn move_representation(&self) -> &str {
+        "R"
     }
 }
 

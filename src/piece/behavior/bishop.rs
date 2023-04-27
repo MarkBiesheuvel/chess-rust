@@ -16,7 +16,7 @@ use super::PieceBehavior;
 /// let bishop = Piece::new(D4, White, Bishop);
 ///
 /// // Assertions
-/// assert_eq!(bishop.to_string(), "B");
+/// assert_eq!(bishop.board_representation(), 'B');
 /// assert_eq!(bishop.square().to_string(), "d4");
 /// ```
 #[derive(Debug)]
@@ -39,11 +39,15 @@ impl PieceBehavior for Bishop {
         lines.into_iter().flatten().collect()
     }
 
-    fn symbol(&self, color: &Color) -> char {
+    fn board_representation(&self, color: &Color) -> char {
         match color {
             Color::Black => 'b',
             Color::White => 'B',
         }
+    }
+
+    fn move_representation(&self) -> &str {
+        "B"
     }
 }
 

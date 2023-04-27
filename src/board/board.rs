@@ -12,7 +12,6 @@ use super::{Square, SquareNotation::*, SquareStatus};
 ///
 /// ## Examples
 /// ```
-/// use std::str::FromStr;
 /// use chess::board::{Board, Square, SquareStatus, SquareNotation::*};
 /// use chess::piece::Color::*;
 ///
@@ -150,7 +149,7 @@ impl fmt::Display for Board {
                 // Find piece on square
                 match self.pieces.get(&square) {
                     Some(piece) => {
-                        write!(f, "{}", piece)?;
+                        write!(f, "{}", piece.board_representation())?;
                     }
                     None => {
                         write!(f, "{}", SQUARE_EMPTY)?;

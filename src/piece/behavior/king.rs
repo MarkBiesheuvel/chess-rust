@@ -16,7 +16,7 @@ use super::PieceBehavior;
 /// let king = Piece::new(E7, Black, King);
 ///
 /// // Assertions
-/// assert_eq!(king.to_string(), "k");
+/// assert_eq!(king.board_representation(), 'k');
 /// assert_eq!(king.square().to_string(), "e7");
 /// ```
 #[derive(Debug)]
@@ -43,11 +43,15 @@ impl PieceBehavior for King {
         lines.into_iter().flatten().collect()
     }
 
-    fn symbol(&self, color: &Color) -> char {
+    fn board_representation(&self, color: &Color) -> char {
         match color {
             Color::Black => 'k',
             Color::White => 'K',
         }
+    }
+
+    fn move_representation(&self) -> &str {
+        "K"
     }
 }
 

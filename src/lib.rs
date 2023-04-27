@@ -8,3 +8,4 @@ mod macros;
 pub mod board;
 mod parser;
 pub mod piece;
+pub mod game;

@@ -78,7 +78,7 @@ impl str::FromStr for Square {
     /// let square = text.parse::<Square>()?;
     ///
     /// assert_eq!(square.to_string(), text);
-    ///
+    /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     fn from_str(string: &str) -> Result<Self, Self::Err> {

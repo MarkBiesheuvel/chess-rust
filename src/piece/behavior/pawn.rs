@@ -16,7 +16,7 @@ use super::PieceBehavior;
 /// let pawn = Piece::new(A2, White, Pawn);
 ///
 /// // Assertions
-/// assert_eq!(pawn.to_string(), "P");
+/// assert_eq!(pawn.board_representation(), 'P');
 /// assert_eq!(pawn.square().to_string(), "a2");
 /// ```
 #[derive(Debug)]
@@ -38,11 +38,15 @@ impl PieceBehavior for Pawn {
         SquareIterator::from_direction(piece, board, limit, direction)
     }
 
-    fn symbol(&self, color: &Color) -> char {
+    fn board_representation(&self, color: &Color) -> char {
         match color {
             Color::Black => 'p',
             Color::White => 'P',
         }
+    }
+
+    fn move_representation(&self) -> &str {
+        ""
     }
 }
 
